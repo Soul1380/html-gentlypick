@@ -24,7 +24,7 @@ if errorlevel 1 (
 git pull --no-rebase --no-edit origin main
 if errorlevel 1 goto failed
 
-git push origin master:main
+git push origin HEAD:main
 if errorlevel 1 goto failed
 
 echo.
