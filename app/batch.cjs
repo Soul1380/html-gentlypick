@@ -1,0 +1,25 @@
+const crypto=require('node:crypto'),search=require('./search.cjs');
+async function runBatch(task,env){
+ const {get,collect,archiveImages,MEDIA,state,save,render}=env,deep=task.depth?.enabled===true,scope=task.mode==='search'?task.sources:[task.url],maxPages=deep?task.depth.maxPages:60,maxDepth=deep?task.depth.maxDepth:0,reportLimit=task.mode==='search'?task.maxResults:maxPages;
+ const batch={runId:task.activeRunId,time:new Date().toISOString(),found:0,processed:0,saved:0,duplicates:0,irrelevant:0,failed:0,skipped:0,items:[],warnings:[],deep};task.lastBatch=batch;task.status=task.mode==='search'?'搜索中':'深度检索中';save();
+ let keywords=search.terms(task.prompt||''),seeds;
+ if(task.mode==='search'){const discovery=await search.discover(task,async url=>{const page=await get(url);if(page.status!==200)throw Error('HTTP '+page.status);return page;});keywords=discovery.keywords;batch.warnings=discovery.warnings;seeds=discovery.candidates;if(deep)seeds=seeds.slice(0,Math.min(5,maxPages));}else seeds=[{url:task.url,title:task.name}];
+ const queue=[],seen=new Set(),redirected=new Set();
+ function enqueue(item){const url=search.normalize(item.url);if(!url||seen.has(url))return;if(!search.allowed(url,scope)){batch.skipped++;return;}if(seen.size>=maxPages*4){batch.skipped++;return;}seen.add(url);queue.push({...item,url});batch.found++;}
+ for(const seed of seeds)enqueue({...seed,depth:0,via:task.mode==='search'?'搜索结果':'起始页面',parentUrl:''});task.seen=task.seen||{};save();
+ while(queue.length&&batch.processed<maxPages&&batch.saved+batch.duplicates<reportLimit){const candidate=queue.shift();task.status='摘录中 '+(batch.processed+1)+' / 已发现 '+batch.found;save();let item={url:candidate.url,title:candidate.title,depth:candidate.depth,via:candidate.via,parentUrl:candidate.parentUrl};
+  try{let result;for(let attempt=0;attempt<3;attempt++){try{result=await collect(candidate.url,task.respectRobots===true,scope);break;}catch(e){if(attempt===2||/robots|HTTP 40[134]|范围/.test(e.message))throw e;await new Promise(r=>setTimeout(r,1000*(attempt+1)));}}
+   const url=search.normalize(result.url);item={...item,url:result.url,title:result.title};if(redirected.has(url)){batch.duplicates++;item.status='重复目标地址';continue;}redirected.add(url);
+   if(task.mode!=='search'&&candidate.depth===0&&!keywords.length)keywords=search.terms(result.title);
+   const relevanceText=result.title+' '+result.text+(result.adapterKind?' '+(new URL(result.url).searchParams.get('q')||new URL(result.url).searchParams.get('query')||''):'');if(!(task.mode!=='search'&&candidate.depth===0)&&keywords.length&&!search.score(relevanceText,keywords)){batch.irrelevant++;item.status='正文不匹配';continue;}
+   // Expand unchanged articles too: their linked pages may have changed since the last run.
+   if(deep&&candidate.depth<maxDepth){for(const [kind,enabled] of [['article',task.depth.article],['related',task.depth.related]])if(enabled)for(const link of result.links?.[kind]||[])enqueue({...link,depth:candidate.depth+1,via:kind==='article'?'正文超链接':'相关推荐',parentUrl:result.url});}
+   const hash=crypto.createHash('sha256').update(result.title+'\n'+result.text+'\n'+JSON.stringify(result.images||[])+'\n'+task.template).digest('hex');if(task.seen[url]===hash){batch.duplicates++;item.status='重复';continue;}
+   const images=await archiveImages(result.images,result.url,MEDIA),report={id:crypto.randomUUID(),runId:task.activeRunId,taskId:task.id,taskName:task.name,title:result.title,url:result.url,time:new Date().toISOString(),text:result.text,images,template:task.template,method:task.mode==='search'?'search':'deep',prompt:task.prompt,depth:candidate.depth,via:candidate.via,parentUrl:candidate.parentUrl};report.content=render(task.template,{...report,time:new Date(report.time).toLocaleString('zh-CN',{hour12:false})});state.reports.unshift(report);task.seen[url]=hash;batch.saved++;item={...item,status:'已保存',reportId:report.id};
+  }catch(e){batch.failed++;item={...item,status:'失败',error:e.message};}finally{batch.processed++;batch.items.push(item);save();}
+ }
+ batch.pending=queue.length;batch.limitReason=queue.length?(batch.processed>=maxPages?'已达到页面总数上限':'已达到每次摘录篇数上限'):'';for(const item of queue)batch.items.push({...item,status:'未处理（达到上限）'});
+ task.lastRun=new Date().toISOString();task.error='';task.status=batch.failed?(batch.saved||batch.duplicates?'部分完成':'失败'):batch.saved?'已完成':batch.duplicates?'无新增':'无匹配';if(task.status==='失败')task.error='页面未能成功摘录，请查看本次明细';if(!batch.found&&batch.warnings.length)task.error='未找到结果，部分入口访问失败，请查看明细';save();return {batch};
+}
+function depthInput(input){const d=input||{};const depth={enabled:d.enabled===true,article:d.article!==false,related:d.related===true,maxDepth:d.maxDepth===undefined?1:Number(d.maxDepth),maxPages:d.maxPages===undefined?20:Number(d.maxPages)};if(!Number.isInteger(depth.maxDepth)||depth.maxDepth<1||depth.maxDepth>3)throw Error('深入层数应为1至3');if(!Number.isInteger(depth.maxPages)||depth.maxPages<1||depth.maxPages>50)throw Error('页面总数上限应为1至50');if(depth.enabled&&!depth.article&&!depth.related)throw Error('请选择至少一种深入链接类型');return depth;}
+module.exports={runBatch,depthInput};

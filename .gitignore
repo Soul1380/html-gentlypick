@@ -1,0 +1,12 @@
+.build/
+dist/
+UserData/
+**/data.json
+**/adapter-service-data.json
+**/media/
+**/videos/
+*.exe
+*.dll
+*.pdb
+*.zip
+node_modules/
