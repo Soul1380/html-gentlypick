@@ -1,15 +1,21 @@
-param([Parameter(Mandatory=$true)][string]$InstallDirectory,[string]$Version='1.0.0',[string]$Repository='OWNER/REPOSITORY',[string]$ReleaseNotes='')
+﻿param([Parameter(Mandatory=$true)][string]$InstallDirectory,[string]$Version='1.0.0',[string]$Repository='Soul1380/html-gentlypick',[string]$ReleaseNotes='')
 $ErrorActionPreference='Stop'
-$Version=$Version.TrimStart('v')
-if($Version -notmatch '^\d+\.\d+\.\d+$'){throw '版本号无效'}
+if($Version -notmatch '^\d+\.\d+\.\d+$'){throw '版本号必须为 x.y.z。'}
 $root=(Resolve-Path -LiteralPath $InstallDirectory).Path
-$outDir=Split-Path $root -Parent
-$zipName="LightExcerpt-v$Version-win-x64.zip"
-$zip=Join-Path $outDir $zipName
-$allow=@('轻摘.exe','轻摘更新.exe','Microsoft.Web.WebView2.Core.dll','Microsoft.Web.WebView2.WinForms.dll','WebView2Loader.dll','version.json','README.md','THIRD-PARTY-NOTICES.md','启动轻摘.cmd','导入旧资料.cmd','导入旧资料.ps1','app','runtime')
-$files=@();foreach($name in $allow){$candidate=Join-Path $root $name;if(Test-Path -LiteralPath $candidate){$files+=$candidate}}
-Compress-Archive -LiteralPath $files -DestinationPath $zip -Force
-$manifest=@{version=$Version;packageUrl="https://github.com/$Repository/releases/download/v$Version/$zipName";sha256=(Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant();size=(Get-Item -LiteralPath $zip).Length;releaseNotes=$ReleaseNotes}
-[IO.File]::WriteAllText((Join-Path $outDir 'latest.json'),($manifest|ConvertTo-Json -Depth 5),[Text.UTF8Encoding]::new($false))
-Write-Host "发布文件：$zip"
-Write-Host '另需将latest.json放进同一GitHub Release；发布前把OWNER/REPOSITORY改为实际仓库。'
+$versionFile=Join-Path $root 'version.json'
+$embedded=Get-Content -LiteralPath $versionFile -Raw -Encoding UTF8|ConvertFrom-Json
+if($embedded.version -ne $Version){throw '软件目录版本与目标版本不一致。'}
+$out=Split-Path $root -Parent
+$zip=Join-Path $out 'LightExcerpt-win-x64-update.zip'
+$installer=Join-Path $out ("GentlyPick-v$Version-win-x64.zip")
+if((Test-Path -LiteralPath $zip) -or (Test-Path -LiteralPath $installer)){throw '输出包已存在，请先移走旧包。'}
+$names=@('轻摘.exe','Updater.exe','轻摘更新.exe','Microsoft.Web.WebView2.Core.dll','Microsoft.Web.WebView2.WinForms.dll','WebView2Loader.dll','version.json','README.md','THIRD-PARTY-NOTICES.md','启动轻摘.cmd','导入旧资料.cmd','导入旧资料.ps1','app','runtime')
+$files=@();foreach($name in $names){$path=Join-Path $root $name;if(-not (Test-Path -LiteralPath $path)){throw "缺少发布文件：$name"};$files+=$path}
+Compress-Archive -LiteralPath $files -DestinationPath $zip
+Copy-Item -LiteralPath $zip -Destination $installer
+$hash=(Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+[IO.File]::WriteAllText((Join-Path $out 'SHA256.txt'),"$hash  LightExcerpt-win-x64-update.zip`r`n",[Text.UTF8Encoding]::new($false))
+Write-Host "更新包：$zip"
+Write-Host "安装包：$installer"
+Write-Host "SHA-256：$hash"
+Write-Host '将更新包上传至正式 GitHub Release；应用读取 GitHub 提供的附件摘要。'

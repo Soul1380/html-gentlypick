@@ -8,5 +8,13 @@
   },
   "playwright": {
     "version": "1.62.1"
+  },
+  "videoTools": {
+    "ytDlpUrl": "https://github.com/yt-dlp/yt-dlp/releases/download/2026.10.26/yt-dlp.exe",
+    "ytDlpSha256": "f5389d3698ecde4ef06f4e6b1ce0294fe9ac1396228c8990b8d3416d6d177a7d",
+    "ffmpegUrl": "https://github.com/yt-dlp/FFmpeg-Builds/releases/download/autobuild-2026-10-31-18-18/ffmpeg-N-128251-g6d1bfd7609-win64-gpl.zip",
+    "ffmpegZipSha256": "7c3535fd0e0960bbebb8bf8acc71292e855c97f58a628fd4f43aacc2adc16c87",
+    "ffmpegSha256": "ded4a312a89a18e5b8808e53e20e46588e305365d748f1e4c709ee037bb2e12f",
+    "ffprobeSha256": "993141792a1d6f94bc91bd805eb1979b1702bfb4ea3ed4957788da8b737bd6cb"
   }
 }

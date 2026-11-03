@@ -1,4 +1,4 @@
-param([string]$Version='1.0.0',[string]$ToolsDirectory='')
+﻿param([string]$Version='1.0.0',[string]$ToolsDirectory='')
 $ErrorActionPreference='Stop'
 $Version=$Version.TrimStart('v')
 if($Version -notmatch '^\d+\.\d+\.\d+$'){throw '版本号必须为x.y.z'}
@@ -24,7 +24,7 @@ $nodeZipName="node-v$nodeVersion-win-x64.zip"
 $nodeZip=Join-Path $workRoot $nodeZipName
 if(!(Test-Path -LiteralPath $nodeZip)){Download-VerifiedTLS "https://nodejs.org/dist/v$nodeVersion/$nodeZipName" $nodeZip}
 $sumsFile=Join-Path $workRoot 'SHASUMS256.txt'
-Download-VerifiedTLS "https://nodejs.org/dist/v$nodeVersion/SHASUMS256.txt" $sumsFile
+if(!(Test-Path -LiteralPath $sumsFile)){Download-VerifiedTLS "https://nodejs.org/dist/v$nodeVersion/SHASUMS256.txt" $sumsFile}
 $sums=Get-Content -LiteralPath $sumsFile -Raw
 $match=[regex]::Match($sums,('(?m)^([a-f0-9]{64})\s+'+[regex]::Escape($nodeZipName)+'\s*$'))
 if(!$match.Success -or (Get-FileHash -LiteralPath $nodeZip -Algorithm SHA256).Hash -ne $match.Groups[1].Value){throw 'Node运行时SHA-256校验失败'}
@@ -41,7 +41,28 @@ Get-ChildItem -LiteralPath (Join-Path $outDir 'app') -File | Where-Object {$_.Ex
  $content=[IO.File]::ReadAllText($_.FullName).Replace('1.0.0',$Version)
  [IO.File]::WriteAllText($_.FullName,$content,[Text.UTF8Encoding]::new($false))
 }
-if($ToolsDirectory){Get-ChildItem -LiteralPath $ToolsDirectory -File|Copy-Item -Destination (Join-Path $outDir 'app/tools') -Force}
+$toolsOut=Join-Path $outDir 'app/tools'
+if($ToolsDirectory){
+ foreach($name in @('yt-dlp.exe','ffmpeg.exe','ffprobe.exe')){Copy-Item -LiteralPath (Join-Path $ToolsDirectory $name) -Destination $toolsOut -Force}
+}else{
+ $yt=Join-Path $workRoot 'yt-dlp.exe'
+ if(!(Test-Path -LiteralPath $yt)){Download-VerifiedTLS $deps.videoTools.ytDlpUrl $yt}
+ if((Get-FileHash -LiteralPath $yt -Algorithm SHA256).Hash -ne $deps.videoTools.ytDlpSha256){throw 'yt-dlp SHA-256 校验失败。'}
+ $ffzip=Join-Path $workRoot 'ffmpeg-win64.zip'
+ if(!(Test-Path -LiteralPath $ffzip)){Download-VerifiedTLS $deps.videoTools.ffmpegUrl $ffzip}
+ if((Get-FileHash -LiteralPath $ffzip -Algorithm SHA256).Hash -ne $deps.videoTools.ffmpegZipSha256){throw 'FFmpeg 压缩包 SHA-256 校验失败。'}
+ $ffdir=Join-Path $workRoot 'ffmpeg-win64'
+ Expand-Archive -LiteralPath $ffzip -DestinationPath $ffdir -Force
+ foreach($name in @('ffmpeg.exe','ffprobe.exe')){
+  $matches=@(Get-ChildItem -LiteralPath $ffdir -Recurse -File -Filter $name)
+  if($matches.Count -ne 1){throw "FFmpeg 包中无法唯一找到 $name"}
+  Copy-Item -LiteralPath $matches[0].FullName -Destination $toolsOut -Force
+ }
+ Copy-Item -LiteralPath $yt -Destination $toolsOut -Force
+}
+foreach($item in @(@('yt-dlp.exe',$deps.videoTools.ytDlpSha256),@('ffmpeg.exe',$deps.videoTools.ffmpegSha256),@('ffprobe.exe',$deps.videoTools.ffprobeSha256))){
+ if((Get-FileHash -LiteralPath (Join-Path $toolsOut $item[0]) -Algorithm SHA256).Hash -ne $item[1]){throw "视频工具校验失败：$($item[0])"}
+}
 $package=Get-Content (Join-Path $outDir 'app/package.json') -Raw|ConvertFrom-Json
 $package.version=$Version
 [IO.File]::WriteAllText((Join-Path $outDir 'app/package.json'),($package|ConvertTo-Json -Depth 6),[Text.UTF8Encoding]::new($false))
@@ -53,18 +74,21 @@ foreach($type in @('Desktop','Updater')){
  $cs=(Get-Content -LiteralPath (Join-Path $sourceRoot "desktop/$type.cs") -Raw).Replace('1.0.0',$Version)
  $csFile=Join-Path $workRoot ($type+'.cs')
  [IO.File]::WriteAllText($csFile,$cs,[Text.UTF8Encoding]::new($true))
- $exe=if($type -eq 'Desktop'){'轻摘.exe'}else{'轻摘更新.exe'}
+ $exe=if($type -eq 'Desktop'){'轻摘.exe'}else{'Updater.exe'}
  $refs=@('System.Windows.Forms.dll','System.Drawing.dll','System.Net.Http.dll','System.Web.Extensions.dll')
  if($type -eq 'Desktop'){$refs+=@((Join-Path $wvLib 'Microsoft.Web.WebView2.Core.dll'),(Join-Path $wvLib 'Microsoft.Web.WebView2.WinForms.dll'))}else{$refs+=@('System.IO.Compression.dll','System.IO.Compression.FileSystem.dll')}
- $argsList=@('/nologo','/target:winexe','/platform:x64','/optimize+',('/out:"'+(Join-Path $outDir $exe)+'"'))
+ $argsList=@('/nologo','/codepage:65001','/target:winexe','/platform:x64','/optimize+',('/out:"'+(Join-Path $outDir $exe)+'"'))
  foreach($r in $refs){$argsList+=('/reference:"'+$r+'"')}
  $argsList+=('/win32manifest:"'+(Join-Path $sourceRoot 'desktop/app.manifest')+'"')
  $argsList+=('"'+$csFile+'"')
+ $extra=if($type -eq 'Desktop'){@('ReleaseFeed.cs','ReleaseClient.cs','UpdateGate.cs')}else{@('ReleaseFeed.cs','ReleaseClient.cs','PackageValidator.cs','PackageDownload.cs','UpdateLog.cs','UpdateGate.cs','ProcessIdentity.cs','ProcessTree.cs','FileTransaction.cs','UpdateCoordinator.cs')}
+ foreach($f in $extra){$argsList+=('"'+(Join-Path $sourceRoot ('desktop/updater/'+$f))+'"')}
  $rsp=Join-Path $workRoot ($type+'.rsp')
  [IO.File]::WriteAllLines($rsp,$argsList,[Text.UTF8Encoding]::new($true))
  & $csc ('@'+$rsp)
  if($LASTEXITCODE -ne 0){throw "编译$type失败"}
 }
+Copy-Item -LiteralPath (Join-Path $outDir 'Updater.exe') -Destination (Join-Path $outDir '轻摘更新.exe')
 $versionInfo=@{name='轻摘';version=$Version;platform='win-x64';builtAt=[DateTime]::UtcNow.ToString('o')}|ConvertTo-Json
 [IO.File]::WriteAllText((Join-Path $outDir 'version.json'),$versionInfo,[Text.UTF8Encoding]::new($false))
 foreach($f in @('README.md','THIRD-PARTY-NOTICES.md','导入旧资料.ps1','导入旧资料.cmd','启动轻摘.cmd')){Copy-Item -LiteralPath (Join-Path $sourceRoot "distribution/$f") -Destination $outDir}

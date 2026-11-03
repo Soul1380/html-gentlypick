@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: '版本号，例如1.0.1'
+        description: '版本号，例如 1.0.1'
         required: true
 permissions:
   contents: write
@@ -19,12 +19,9 @@ jobs:
         env:
           INPUT_VERSION: ${{ github.event.inputs.version }}
           TAG_VERSION: ${{ github.ref_name }}
-          REPOSITORY: ${{ github.repository }}
         run: |
           $version = if ($env:INPUT_VERSION) {$env:INPUT_VERSION} else {$env:TAG_VERSION.TrimStart('v')}
           ./build-desktop.ps1 -Version $version
-          $folder = Join-Path $PWD "dist/轻摘-v$version"
-          ./publish-package.ps1 -InstallDirectory $folder -Version $version -Repository $env:REPOSITORY -ReleaseNotes "轻摘 v$version"
       - name: Publish GitHub release assets
         shell: pwsh
         env:
@@ -35,4 +32,5 @@ jobs:
           $version = if ($env:INPUT_VERSION) {$env:INPUT_VERSION} else {$env:TAG_VERSION.TrimStart('v')}
           gh release view "v$version" 2>$null
           if ($LASTEXITCODE -ne 0) { gh release create "v$version" --title "轻摘 v$version" --generate-notes }
-          gh release upload "v$version" "dist/LightExcerpt-v$version-win-x64.zip" "dist/latest.json" --clobber
+          gh release upload "v$version" "dist/LightExcerpt-win-x64-update.zip" "dist/GentlyPick-v$version-win-x64.zip" "dist/SHA256.txt"
+          if ($LASTEXITCODE -ne 0) { throw '上传发布附件失败。' }
