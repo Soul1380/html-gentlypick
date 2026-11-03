@@ -1,8 +1,8 @@
-﻿param([string]$Version='1.0.0',[string]$ToolsDirectory='')
+﻿param([string]$Version='',[string]$ToolsDirectory='')
 $ErrorActionPreference='Stop'
-$Version=$Version.TrimStart('v')
-if($Version -notmatch '^\d+\.\d+\.\d+$'){throw '版本号必须为x.y.z'}
 $sourceRoot=$PSScriptRoot
+. (Join-Path $sourceRoot 'version-tools.ps1')
+$Version=Get-ProjectVersion -Root $sourceRoot -Requested $Version
 function Download-VerifiedTLS([string]$Url,[string]$Destination){
  & node (Join-Path $sourceRoot 'app/update-download.cjs') --url $Url --out $Destination --limit 2147483648 | Out-Null
  if($LASTEXITCODE -ne 0){throw "下载失败：$Url"}
@@ -64,7 +64,7 @@ foreach($item in @(@('yt-dlp.exe',$deps.videoTools.ytDlpSha256),@('ffmpeg.exe',$
  if((Get-FileHash -LiteralPath (Join-Path $toolsOut $item[0]) -Algorithm SHA256).Hash -ne $item[1]){throw "视频工具校验失败：$($item[0])"}
 }
 $package=Get-Content (Join-Path $outDir 'app/package.json') -Raw|ConvertFrom-Json
-$package.version=$Version
+$package | Add-Member -NotePropertyName version -NotePropertyValue $Version -Force
 [IO.File]::WriteAllText((Join-Path $outDir 'app/package.json'),($package|ConvertTo-Json -Depth 6),[Text.UTF8Encoding]::new($false))
 $wvLib=Join-Path $wvDir 'lib/net462'
 foreach($name in @('Microsoft.Web.WebView2.Core.dll','Microsoft.Web.WebView2.WinForms.dll')){Copy-Item -LiteralPath (Join-Path $wvLib $name) -Destination $outDir}

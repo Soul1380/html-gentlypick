@@ -31,7 +31,7 @@ try {
     Run-Git @('clone','--branch','main','--single-branch','--',$RepositoryUrl,$tmp)
     $tracked = & $git.Source -c 'safe.directory=*' -C $source -c core.quotepath=false ls-files
     if ($LASTEXITCODE -ne 0) { throw '无法读取源码文件列表。' }
-    $tracked = @($tracked) + @('publish-github.ps1','一键发布GitHub.cmd') | Select-Object -Unique
+    $tracked = @($tracked) + @('publish-github.ps1','一键发布GitHub.cmd','version.json','version-tools.ps1','发布版本到GitHub.cmd','发布1.0.1到GitHub.cmd') | Select-Object -Unique
     foreach ($relative in $tracked) {
         if ([string]::IsNullOrWhiteSpace($relative)) { continue }
         $relative = $relative.Trim('"')

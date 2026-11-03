@@ -1,6 +1,7 @@
-﻿param([Parameter(Mandatory=$true)][string]$InstallDirectory,[string]$Version='1.0.0',[string]$Repository='Soul1380/html-gentlypick',[string]$ReleaseNotes='')
+﻿param([Parameter(Mandatory=$true)][string]$InstallDirectory,[string]$Version='',[string]$Repository='Soul1380/html-gentlypick',[string]$ReleaseNotes='')
 $ErrorActionPreference='Stop'
-if($Version -notmatch '^\d+\.\d+\.\d+$'){throw '版本号必须为 x.y.z。'}
+. (Join-Path $PSScriptRoot 'version-tools.ps1')
+$Version=Get-ProjectVersion -Root $PSScriptRoot -Requested $Version
 $root=(Resolve-Path -LiteralPath $InstallDirectory).Path
 $versionFile=Join-Path $root 'version.json'
 $embedded=Get-Content -LiteralPath $versionFile -Raw -Encoding UTF8|ConvertFrom-Json

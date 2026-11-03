@@ -39,7 +39,7 @@ async function integration(){
   const task=await api('/api/tasks',{name:'测试',mode:'url',url,time:'09:00',enabled:false,template});
   const run=await api(`/api/tasks/${task.id}/run`,{});assert.ok(run.report.blocks.some(x=>x.type==='table'));assert.ok(run.report.blocks.some(x=>x.type==='code'));assert.match(run.report.text,/  return "x";/);
   const imported=await api('/api/desktop/import',{taskId:task.id,url,html:sample},{'X-Desktop-Token':'test-token'});assert.equal(imported.title,'测试文章');
-  const state=await (await fetch(`http://127.0.0.1:${appPort}/api/state`)).json();assert.ok(state.reports[0].blocks.some(x=>x.type==='table'));
+  const state=await (await fetch(`http://127.0.0.1:${appPort}/api/state`)).json();assert.equal(state.appVersion,JSON.parse(fs.readFileSync(path.join(APP,'..','version.json'),'utf8').replace(/^\uFEFF/,'')).version);assert.ok(state.reports[0].blocks.some(x=>x.type==='table'));
   const rendered=context.renderFormattedReport(state.reports[0]);assert.match(rendered,/<table class="excerpt-table">/);assert.match(rendered,/<pre class="excerpt-code">/);
   const page=fs.readFileSync(path.join(APP,'index.html'),'utf8'),line=page.match(/async function downloadHtml\(id\)\{[^\n]+/);assert.ok(line,'HTML export function missing');let saved;
   const exportContext={data:{reports:[state.reports[0]]},renderFormattedReport:context.renderFormattedReport,esc:s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),message:()=>{},Blob,URL:{createObjectURL:b=>(saved=b,'blob:test'),revokeObjectURL:()=>{}},document:{createElement:()=>({click(){}})},setTimeout:()=>{}};

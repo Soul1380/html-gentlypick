@@ -1,7 +1,6 @@
 {
   "name": "lite-excerpt",
   "private": true,
-  "version": "1.0.0",
   "description": "本地网页与图片素材摘录",
   "scripts": {
     "start": "node server.cjs"

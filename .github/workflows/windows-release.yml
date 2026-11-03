@@ -6,7 +6,7 @@ on:
     inputs:
       version:
         description: '版本号，例如 1.0.1'
-        required: true
+        required: false
 permissions:
   contents: write
 jobs:
@@ -19,17 +19,23 @@ jobs:
         env:
           INPUT_VERSION: ${{ github.event.inputs.version }}
           TAG_VERSION: ${{ github.ref_name }}
+          REF_TYPE: ${{ github.ref_type }}
         run: |
-          $version = if ($env:INPUT_VERSION) {$env:INPUT_VERSION} else {$env:TAG_VERSION.TrimStart('v')}
-          ./build-desktop.ps1 -Version $version
+          . ./version-tools.ps1
+          $requested = if ($env:INPUT_VERSION) {$env:INPUT_VERSION} elseif ($env:REF_TYPE -eq 'tag') {$env:TAG_VERSION} else {''}
+          $version = Get-ProjectVersion -Root $PWD -Requested $requested
+          ./build-desktop.ps1
       - name: Publish GitHub release assets
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
           INPUT_VERSION: ${{ github.event.inputs.version }}
           TAG_VERSION: ${{ github.ref_name }}
+          REF_TYPE: ${{ github.ref_type }}
         run: |
-          $version = if ($env:INPUT_VERSION) {$env:INPUT_VERSION} else {$env:TAG_VERSION.TrimStart('v')}
+          . ./version-tools.ps1
+          $requested = if ($env:INPUT_VERSION) {$env:INPUT_VERSION} elseif ($env:REF_TYPE -eq 'tag') {$env:TAG_VERSION} else {''}
+          $version = Get-ProjectVersion -Root $PWD -Requested $requested
           gh release view "v$version" 2>$null
           if ($LASTEXITCODE -ne 0) { gh release create "v$version" --title "轻摘 v$version" --generate-notes }
           gh release upload "v$version" "dist/LightExcerpt-win-x64-update.zip" "dist/GentlyPick-v$version-win-x64.zip" "dist/SHA256.txt"
