@@ -47,3 +47,21 @@ jobs:
           gh release edit "v$version" --draft=false
           if ($LASTEXITCODE -ne 0) { throw '发布 Release 失败。' }
 
+      - name: Refresh fallback update feed
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          . ./version-tools.ps1
+          $version = Get-ProjectVersion -Root $PWD
+          $repo = $env:GITHUB_REPOSITORY
+          $feed = gh api "repos/$repo/releases/tags/v$version"
+          if ($LASTEXITCODE -ne 0) { throw '无法读取正式发布信息' }
+          $release = $feed | ConvertFrom-Json
+          if ($release.draft -or $release.prerelease) { throw '不能发布测试版本的备用更新源' }
+          $sha = gh api "repos/$repo/contents/update-feed.json?ref=main" --jq .sha 2>$null
+          $body = @{message="Update fallback feed for v$version";branch='main';content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(($feed -join "`n")))}
+          if ($LASTEXITCODE -eq 0 -and $sha) { $body.sha=$sha }
+          $body | ConvertTo-Json | Set-Content feed-request.json -Encoding utf8
+          gh api --method PUT "repos/$repo/contents/update-feed.json" --input feed-request.json > $null
+          if ($LASTEXITCODE -ne 0) { throw '备用更新源同步失败' }
