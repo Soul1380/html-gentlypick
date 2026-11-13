@@ -3,3 +3,6 @@
 html[data-theme=dark] button:not(.primary){background:#292e2a;color:#d7e2d9;border-color:#3a403b}html[data-theme=dark] button:not(.primary):hover,html[data-theme=dark] nav button.active{background:#38473c;color:#c0e2cb}html[data-theme=dark] .empty{color:#a6b0a7}html[data-theme=dark] .empty strong{color:#e6e9e5}#content>.empty,#content>.grid>.empty{grid-column:1/-1;width:100%;text-align:center}aside nav button{background:transparent}html[data-theme=dark] aside nav button{background:transparent}html[data-theme=dark] aside nav button.active{background:#344239}
 
 #notice:not(.error){display:none}.gp-help{margin-top:12px}.gp-theme{margin-top:auto}
+
+/* The desktop shell supplies navigation; avoid a duplicate clipped brand. */
+aside>h1{display:none!important}aside nav{margin-top:12px}@media(max-width:700px){aside nav{margin-top:8px}}
