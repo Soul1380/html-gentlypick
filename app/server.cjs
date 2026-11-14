@@ -5,8 +5,13 @@ const crypto = require('node:crypto');
 const ROOT = __dirname;
 function currentAppVersion(){try{const v=JSON.parse(fs.readFileSync(path.join(ROOT,'..','version.json'),'utf8').replace(/^\uFEFF/,'')).version;return typeof v==='string'&&/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(v)?v:'未知';}catch{return '未知';}}
 const localAdapterService=process.env.EXCERPT_LOCAL_ADAPTER_SERVICE==='1'&&!process.env.SITE_ADAPTER_SERVICE_URL;
+const localModelDownload=require('./local-model-download.cjs').createManager();
 if(localAdapterService)process.env.SITE_ADAPTER_SERVICE_URL='http://127.0.0.1:3921';
 const DATA = process.env.EXCERPT_DATA || path.join(ROOT, 'data.json');
+const runtimeConfigPath=path.join(path.dirname(DATA),'local-model-runtime.json');
+function activateWhisper(config){if(!config||!path.isAbsolute(config.python||'')||!path.isAbsolute(config.home||'')||!fs.existsSync(config.python))return false;process.env.GENTLYPICK_PYTHON=config.python;process.env.GENTLYPICK_WHISPER_HOME=config.home;return true}
+try{activateWhisper(JSON.parse(fs.readFileSync(runtimeConfigPath,'utf8')))}catch{}
+const whisperInstaller=require('./whisper-install.cjs').createManager({onReady:async config=>{fs.mkdirSync(path.dirname(runtimeConfigPath),{recursive:true});fs.writeFileSync(runtimeConfigPath+'.tmp',JSON.stringify(config));fs.renameSync(runtimeConfigPath+'.tmp',runtimeConfigPath);activateWhisper(config)}});
 const DEFAULT_TEMPLATE = '# {{title}}\n\n采集时间：{{time}}\n来源：{{url}}\n\n{{text}}';
 let state = fs.existsSync(DATA) ? JSON.parse(fs.readFileSync(DATA, 'utf8')) : {tasks: [], reports: []};
 const ai=require('./ai-provider.cjs'),analysis=require('./analysis-engine.cjs'),catalog=require('./analysis-catalog.cjs');analysis.init(state);if(state.aiTest?.status==='测试中'){state.aiTest.status='失败';state.aiTest.error='本地服务重启，测试已中断，请重新测试';state.aiTest.finishedAt=new Date().toISOString();}for(const job of state.analyses){if(job.status==='生成中'){job.status='失败';job.error='本地服务重启，分析已中断，可重试未完成批次';job.finishedAt=new Date().toISOString();}}
@@ -92,6 +97,16 @@ const server=http.createServer(async(req,res)=>{
  const send=(status,obj)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(obj));};
  try{const u=new URL(req.url,'http://localhost');const host=req.headers.host||'';if(!/^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host))return send(403,{error:'仅允许本机访问'});
  if(req.method!=='GET'&&req.headers.origin&&req.headers.origin!==`http://${host}`)return send(403,{error:'拒绝跨站请求'});
+ if(u.pathname.startsWith('/video-lab/')){req.url=req.url.slice('/video-lab'.length);return require('./video-analysis/handler.cjs').emit('request',req,res)}
+ if(req.method==='GET'&&u.pathname==='/api/local-models/catalog')return send(200,require('./local-model-catalog.cjs'));
+ if(req.method==='GET'&&u.pathname==='/api/local-models/whisper')return send(200,{job:whisperInstaller.state(),configured:!!(process.env.GENTLYPICK_PYTHON&&process.env.GENTLYPICK_WHISPER_HOME),model:whisperInstaller.state()?.state==='installed'?whisperInstaller.state().model:(()=>{try{return JSON.parse(fs.readFileSync(runtimeConfigPath,'utf8')).model||null}catch{return null}})()});
+ if(req.method==='POST'&&u.pathname==='/api/local-models/whisper'){if(req.headers.origin!==`http://${host}`)return send(403,{error:'需要本机页面操作'});return send(202,{job:whisperInstaller.start(await body(req))})}
+ if(req.method==='POST'&&u.pathname==='/api/local-models/whisper/cancel'){if(req.headers.origin!==`http://${host}`)return send(403,{error:'需要本机页面操作'});return send(200,{job:whisperInstaller.cancel()})}
+ if(req.method==='GET'&&u.pathname==='/api/local-models/download')return send(200,{job:localModelDownload.snapshot()});
+ if(req.method==='POST'&&u.pathname==='/api/local-models/download'){if(req.headers.origin!==`http://${host}`)return send(403,{error:'需要本机页面操作'});return send(202,{job:localModelDownload.start(await body(req))})}
+ if(req.method==='POST'&&u.pathname==='/api/local-models/download/cancel'){if(req.headers.origin!==`http://${host}`)return send(403,{error:'需要本机页面操作'});return send(200,{job:localModelDownload.cancel()})}
+ if(req.method==='GET'&&u.pathname==='/local-models'){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});return res.end(fs.readFileSync(path.join(ROOT,'local-models.html')))}
+ if(req.method==='GET'&&u.pathname==='/api/local-models/installed'){try{const r=await fetch('http://127.0.0.1:11434/api/tags',{signal:AbortSignal.timeout(3000)});if(!r.ok)throw Error();const x=await r.json();return send(200,{available:true,models:(x.models||[]).map(m=>({name:m.name,size:m.size}))})}catch{return send(200,{available:false,models:[]})}}
  if(req.method==='GET'&&['/library-ui.js','/workspace-ui.js','/adapters-ui.js','/analysis-ui.js','/modern-ui.js','/boot-host.js'].includes(u.pathname)){res.writeHead(200,{'Content-Type':'text/javascript; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});return res.end(fs.readFileSync(path.join(ROOT,u.pathname.slice(1))));}
  if(req.method==='GET'&&/^\/report-samples\/(brief|compare|trend|data)\.png$/.test(u.pathname)){const file=path.join(ROOT,u.pathname.slice(1));if(!fs.existsSync(file))return send(404,{error:'样张暂不可用'});res.writeHead(200,{'Content-Type':'image/png','Cache-Control':'no-cache','X-Content-Type-Options':'nosniff'});return fs.createReadStream(file).pipe(res);}
  if(req.method==='GET'&&u.pathname==='/boot.html'){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});return res.end(fs.readFileSync(path.join(ROOT,'boot.html')));}

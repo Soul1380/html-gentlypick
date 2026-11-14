@@ -4,11 +4,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using System.Text;
+using System.Threading;
 
 namespace GentlyPick.Updates {
-    public sealed class UpdateResult { public bool Installed, Restarted; public string Message, LogPath; }
+    public sealed class UpdateResult { public bool Installed, Restarted, Cancelled; public string Message, LogPath; }
     public static class UpdateCoordinator {
-        public static async Task<UpdateResult> Run(string root,ReleaseInfo release,ProcessIdentity parent,Action<string,int> report,UpdateLog log,bool allowLoopbackForTests = false) {
+        public static async Task<UpdateResult> Run(string root,ReleaseInfo release,ProcessIdentity parent,Action<string,int> report,UpdateLog log,bool allowLoopbackForTests = false,CancellationToken cancellationToken=default(CancellationToken),Action beforeCommit=null) {
             root=Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar);
             string main=Path.GetFullPath(Path.Combine(root,"轻摘.exe"));
             if(!String.Equals(parent.Executable,main,StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("主程序身份与安装路径不一致。");
@@ -23,11 +24,14 @@ namespace GentlyPick.Updates {
                     string package=Path.Combine(work,"package.zip"),unpacked=Path.Combine(work,"stage"),backup=Path.Combine(work,"backup");
                     try {
                         stage("下载更新包",0);
-                        await PackageDownload.Fetch(new Uri(release.AssetUrl),package,release.Size,release.Sha256,TimeSpan.FromMinutes(30),(n,total,speed)=>report("下载 "+(n/1048576.0).ToString("0.00")+" / "+(total/1048576.0).ToString("0.00")+" MB · "+(speed/1048576.0).ToString("0.00")+" MB/s",(int)(n*100/total)),allowLoopbackForTests);
+                        await PackageDownload.Fetch(new Uri(release.AssetUrl),package,release.Size,release.Sha256,TimeSpan.FromMinutes(30),(n,total,speed)=>report("下载 "+(n/1048576.0).ToString("0.00")+" / "+(total/1048576.0).ToString("0.00")+" MB · "+(speed/1048576.0).ToString("0.00")+" MB/s",(int)(n*100/total)),allowLoopbackForTests,cancellationToken);
                         stage("下载大小与 SHA-256 已验证",100);
                         stage("解压并校验更新包",0);
-                        List<string> files=await Task.Run(()=>PackageValidator.Extract(package,unpacked,release.Version));
+                        List<string> files=await Task.Run(()=>PackageValidator.Extract(package,unpacked,release.Version,cancellationToken));
                         foreach(string file in files)PackageValidator.CheckedPath(root,file);
+                        cancellationToken.ThrowIfCancellationRequested();
+                        if(beforeCommit!=null)beforeCommit();
+                        cancellationToken.ThrowIfCancellationRequested();
                         stage("确认主程序和相关进程",0);
                         var children=ProcessTree.Capture(parent,Process.GetCurrentProcess().Id);
                         log.Write("捕获相关进程数量："+children.Count);
@@ -38,6 +42,8 @@ namespace GentlyPick.Updates {
                         int count=0;
                         await Task.Run(()=>FileTransaction.Run(root,unpacked,backup,files,text=>{log.Write(text);report(text,Math.Min(99,++count*100/Math.Max(1,files.Count*4)));},null));
                         log.Write("安装完成。");result.Installed=true;
+                    } catch(OperationCanceledException) {
+                        log.Write("用户取消更新，尚未关闭主程序或替换文件。");result.Cancelled=true;result.Message="已取消更新。";return result;
                     } catch(Exception e) {
                         try {log.Write("更新失败："+e);}catch{}
                         result.Message=e.Message;return result;

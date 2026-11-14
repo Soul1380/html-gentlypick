@@ -31,7 +31,18 @@ class DownloadTests {
             if(RunServer("short","short.zip",good,3,2000).GetAwaiter().GetResult())throw new Exception("truncated download accepted");
             if(RunServer("ok","hash.zip",new string('0',64),3,2000).GetAwaiter().GetResult())throw new Exception("invalid hash accepted");
             if(RunServer("timeout","timeout.zip",good,3,150).GetAwaiter().GetResult())throw new Exception("timeout accepted");
+            TestCancel(good).GetAwaiter().GetResult();
             Console.WriteLine("PASS download, interruption, hash mismatch and timeout");return 0;
         } finally {Directory.Delete(root,true);}
+    }
+    static async Task TestCancel(string hash) {
+        var server=new TcpListener(IPAddress.Loopback,0);server.Start();int port=((IPEndPoint)server.LocalEndpoint).Port;
+        var accepted=new TaskCompletionSource<bool>();
+        var task=Task.Run(()=>{using(var client=server.AcceptTcpClient())using(var stream=client.GetStream()){var request=new byte[2048];stream.Read(request,0,request.Length);accepted.SetResult(true);Thread.Sleep(500);}});
+        using(var cts=new CancellationTokenSource()) {
+            var pending=PackageDownload.Fetch(new Uri("http://127.0.0.1:"+port+"/slow"),Path.Combine(root,"cancel.zip"),3,hash,TimeSpan.FromSeconds(5),null,true,cts.Token);
+            await accepted.Task;cts.Cancel();bool cancelled=false;try{await pending;}catch(OperationCanceledException){cancelled=true;}if(!cancelled)throw new Exception("cancellation was not honored");
+        }
+        server.Stop();await task;
     }
 }

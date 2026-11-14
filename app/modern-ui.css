@@ -6,3 +6,4 @@ html[data-theme=dark] button:not(.primary){background:#292e2a;color:#d7e2d9;bord
 
 /* The desktop shell supplies navigation; avoid a duplicate clipped brand. */
 aside>h1{display:none!important}aside nav{margin-top:12px}@media(max-width:700px){aside nav{margin-top:8px}}
+html[data-theme=dark] .card .notice{background:#29332d;color:#e6eee7;border-color:#3c4b40}html[data-theme=dark] .card .notice p{color:#e6eee7}html[data-theme=dark] .card .notice small{color:#b7c8ba}

@@ -46,12 +46,13 @@ namespace GentlyPick.Updates {
             if(path.Length<240 || path.StartsWith(@"\\?\",StringComparison.Ordinal))return path;
             return path.StartsWith(@"\\",StringComparison.Ordinal)?@"\\?\UNC\"+path.Substring(2):@"\\?\"+path;
         }
-        public static List<string> Extract(string zip,string stage,Version expected) {
+        public static List<string> Extract(string zip,string stage,Version expected,System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken)) {
             if(Directory.Exists(stage)) { if(Directory.GetFileSystemEntries(stage).Length>0) throw new IOException("暂存目录不是空目录。"); } else Directory.CreateDirectory(stage);
             var files=new List<string>();var seen=new HashSet<string>(StringComparer.OrdinalIgnoreCase);long total=0;
             using(var archive=ZipFile.OpenRead(zip)) {
                 if(archive.Entries.Count>20000) throw new InvalidDataException("更新包条目过多。");
                 foreach(var entry in archive.Entries) {
+                    cancellationToken.ThrowIfCancellationRequested();
                     string name=entry.FullName.Replace('\\','/');
                     int unixType=(entry.ExternalAttributes>>16)&0xF000;
                     if(unixType!=0 && unixType!=0x8000 && unixType!=0x4000) throw new InvalidDataException("更新包含链接或特殊文件。");
@@ -69,7 +70,7 @@ namespace GentlyPick.Updates {
                     Directory.CreateDirectory(Path.GetDirectoryName(dest));
                     using(var input=entry.Open()) using(var output=new FileStream(dest,FileMode.CreateNew,FileAccess.Write,FileShare.None)) {
                         byte[] buffer=new byte[65536];long written=0;int n;
-                        while((n=input.Read(buffer,0,buffer.Length))>0) { written+=n; if(written>entry.Length)throw new InvalidDataException("解压大小与声明不符。"); output.Write(buffer,0,n); }
+                        while((n=input.Read(buffer,0,buffer.Length))>0) { cancellationToken.ThrowIfCancellationRequested();written+=n; if(written>entry.Length)throw new InvalidDataException("解压大小与声明不符。"); output.Write(buffer,0,n); }
                         if(written!=entry.Length)throw new InvalidDataException("更新包文件不完整。");
                     }
                     files.Add(name);

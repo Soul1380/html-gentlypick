@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 
 namespace GentlyPick.Updates {
     public static class PackageDownload {
-        public static async Task Fetch(Uri uri,string destination,long expectedSize,string digest,TimeSpan timeout,Action<long,long,double> progress,bool allowLoopbackForTests) {
+        public static async Task Fetch(Uri uri,string destination,long expectedSize,string digest,TimeSpan timeout,Action<long,long,double> progress,bool allowLoopbackForTests,CancellationToken cancellationToken=default(CancellationToken)) {
+            cancellationToken.ThrowIfCancellationRequested();
             if(uri==null || !(uri.Scheme==Uri.UriSchemeHttps || (allowLoopbackForTests && uri.Scheme==Uri.UriSchemeHttp && uri.IsLoopback)) || !String.IsNullOrEmpty(uri.UserInfo)) throw new ArgumentException("下载地址不安全。");
             if(expectedSize<=0 || expectedSize>2L*1024*1024*1024)throw new ArgumentOutOfRangeException("expectedSize");
             var request=(HttpWebRequest)WebRequest.Create(uri);
@@ -17,7 +18,8 @@ namespace GentlyPick.Updates {
                 request=(HttpWebRequest)WebRequest.Create(current);
                 request.UserAgent="GentlyPick-Updater/1";request.AllowAutoRedirect=false;request.Timeout=(int)timeout.TotalMilliseconds;request.ReadWriteTimeout=(int)timeout.TotalMilliseconds;
                 HttpWebResponse response=null;
-                using(var cancel=new CancellationTokenSource(timeout)) using(cancel.Token.Register(()=>request.Abort())) {
+                using(var cancel=CancellationTokenSource.CreateLinkedTokenSource(cancellationToken)) using(cancel.Token.Register(()=>request.Abort())) {
+                    cancel.CancelAfter(timeout);
                     try {
                         response=(HttpWebResponse)await request.GetResponseAsync();
                         int code=(int)response.StatusCode;
@@ -40,8 +42,8 @@ namespace GentlyPick.Updates {
                             if(count!=expectedSize)throw new IOException("更新包下载不完整。");
                         }
                         response=null;
-                        PackageValidator.VerifyDownload(destination,expectedSize,digest);return;
-                    } catch(WebException ex) { if(cancel.IsCancellationRequested)throw new TimeoutException("下载更新包超时。",ex);throw; }
+                        cancellationToken.ThrowIfCancellationRequested();await Task.Run(()=>PackageValidator.VerifyDownload(destination,expectedSize,digest));cancellationToken.ThrowIfCancellationRequested();return;
+                    } catch(WebException ex) { if(cancellationToken.IsCancellationRequested)throw new OperationCanceledException("更新已取消。",ex,cancellationToken);if(cancel.IsCancellationRequested)throw new TimeoutException("下载更新包超时。",ex);throw; }
                     finally { if(response!=null)response.Dispose(); }
                 }
             }
