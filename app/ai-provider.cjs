@@ -3,6 +3,7 @@ const presets=[
  {id:'openai',name:'OpenAI',endpoint:'https://api.openai.com/v1/chat/completions',exampleModel:'',docs:'https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create'},
  {id:'qwen',name:'通义千问 / 百炼（北京）',endpoint:'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',exampleModel:'',docs:'https://docs.bailian.console.aliyun.com/en/model-studio/base-url'},
  {id:'glm',name:'智谱 GLM',endpoint:'https://open.bigmodel.cn/api/paas/v4/chat/completions',exampleModel:'',docs:'https://docs.bigmodel.cn/cn/guide/develop/openai/introduction'},
+ {id:'ollama',name:'本地模型 · Ollama',endpoint:'http://127.0.0.1:11434/v1/chat/completions',exampleModel:'',docs:''},
  {id:'local',name:'本机模型（兼容接口）',endpoint:'http://127.0.0.1:1234/v1/chat/completions',exampleModel:'',docs:''},
  {id:'custom',name:'其他 / 自定义兼容接口',endpoint:'',exampleModel:'',docs:''}
 ];

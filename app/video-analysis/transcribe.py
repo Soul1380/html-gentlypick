@@ -33,8 +33,9 @@ os.makedirs(cache, exist_ok=True)
 print(f'正在加载 {model_name}（首次使用会下载到本项目的 local-whisper/models）', file=sys.stderr, flush=True)
 try:
     model = WhisperModel(model_name, device='cpu', compute_type='int8', download_root=cache, local_files_only=True)
-except Exception:
-    model = WhisperModel(model_name, device='cpu', compute_type='int8', download_root=cache, local_files_only=False)
+except Exception as exc:
+    print('Whisper 模型未就绪或无法加载：' + str(exc) + '。请在本地模型页面安装所选版本。', file=sys.stderr, flush=True)
+    sys.exit(2)
 parts, info = model.transcribe(audio, beam_size=5, vad_filter=True, language=None)
 try:
     from opencc import OpenCC
