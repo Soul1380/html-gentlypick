@@ -78,6 +78,7 @@ foreach($type in @('Desktop','Updater')){
  $refs=@('System.Windows.Forms.dll','System.Drawing.dll','System.Net.Http.dll','System.Web.Extensions.dll')
  if($type -eq 'Desktop'){$refs+=@((Join-Path $wvLib 'Microsoft.Web.WebView2.Core.dll'),(Join-Path $wvLib 'Microsoft.Web.WebView2.WinForms.dll'))}else{$refs+=@('System.IO.Compression.dll','System.IO.Compression.FileSystem.dll')}
  $argsList=@('/nologo','/codepage:65001','/target:winexe','/platform:x64','/optimize+',('/out:"'+(Join-Path $outDir $exe)+'"'))
+ if($type -eq 'Desktop'){$argsList+=('/win32icon:"'+(Join-Path $sourceRoot 'desktop/gentlypick.ico')+'"')} 
  foreach($r in $refs){$argsList+=('/reference:"'+$r+'"')}
  $argsList+=('/win32manifest:"'+(Join-Path $sourceRoot 'desktop/app.manifest')+'"')
  $argsList+=('"'+$csFile+'"')

@@ -39,7 +39,7 @@ try{
   $files+=Get-ChildItem -LiteralPath $dir -Recurse -File | Where-Object {
    $_.FullName -notmatch '[\\/](UserData|node_modules|tools|media|videos|\.git|\.build|dist)[\\/]' -and
    $_.Name -notin @('data.json','adapter-service-data.json','feed-request.json') -and
-   ($_.Extension -in @('.js','.cjs','.css','.html','.cs','.manifest','.ps1','.cmd','.md','.yml','.yaml') -or $_.Name -eq 'package.json' -or ($_.Extension -eq '.png' -and $_.Directory.Name -eq 'report-samples'))
+   ($_.Extension -in @('.js','.cjs','.css','.html','.cs','.manifest','.ps1','.cmd','.md','.yml','.yaml','.py','.ico') -or $_.Name -eq 'package.json' -or ($_.Extension -eq '.png' -and $_.Directory.Name -in @('report-samples','video-analysis')))
   }
  }
  foreach($file in $files){
@@ -52,9 +52,11 @@ try{
  Run-Git @('-C',$stage,'add','--all')
  & git -C $stage diff --cached --quiet
  $changed=$LASTEXITCODE
- if($changed -eq 0){Write-Host '源码已上传，无需重复提交。请查看 GitHub Actions / Releases。';exit 0}
- if($changed -ne 1){throw '无法检查本次提交。'}
- Run-Git @('-C',$stage,'-c','user.name=Soul1380','-c','user.email=142634717+Soul1380@users.noreply.github.com','commit','-m',"Release v$version")
+ if($changed -notin @(0,1)){throw '无法检查本次提交。'}
+ $commitArgs=@('-C',$stage,'-c','user.name=Soul1380','-c','user.email=142634717+Soul1380@users.noreply.github.com','commit')
+ if($changed -eq 0){$commitArgs+= '--allow-empty';Write-Host '源码没有变化，将重新启动此版本的构建。'}
+ $commitArgs+= @('-m',"Release v$version")
+ Run-Git $commitArgs
  Run-Git @('-C',$stage,'push','origin','HEAD:main')
  Write-Host "源码上传成功：v$version" -ForegroundColor Green
  Write-Host 'GitHub 将自动构建并发布安装程序、更新包和校验文件。上传成功不代表构建已经完成。'
