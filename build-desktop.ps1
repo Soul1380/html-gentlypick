@@ -1,5 +1,13 @@
-﻿param([string]$Version='',[string]$ToolsDirectory='', [string]$OutputRoot='', [string]$ReuseDependenciesFrom='')
+﻿param([string]$Version='',[string]$ToolsDirectory='', [string]$OutputRoot='', [string]$ReuseDependenciesFrom='', [switch]$LinkDependencies)
 $ErrorActionPreference='Stop'
+function Copy-DependencyTree([string]$Source,[string]$Destination){
+ if(-not $LinkDependencies){Copy-Item -LiteralPath $Source -Destination $Destination -Recurse -Force;return}
+ $sourcePath=(Resolve-Path -LiteralPath $Source).Path
+ $target=Join-Path $Destination (Split-Path $sourcePath -Leaf)
+ if([IO.Path]::GetPathRoot($sourcePath) -ne [IO.Path]::GetPathRoot([IO.Path]::GetFullPath($target))){throw '依赖链接需要使用同一磁盘'}
+ New-Item -ItemType Directory -Path $target -Force|Out-Null
+ foreach($file in Get-ChildItem -LiteralPath $sourcePath -File -Recurse -Force){$dest=Join-Path $target $file.FullName.Substring($sourcePath.Length+1);New-Item -ItemType Directory -Path (Split-Path $dest) -Force|Out-Null;New-Item -ItemType HardLink -Path $dest -Target $file.FullName|Out-Null}
+}
 $sourceRoot=$PSScriptRoot
 . (Join-Path $sourceRoot 'version-tools.ps1')
 $Version=Get-ProjectVersion -Root $sourceRoot -Requested $Version
@@ -16,7 +24,7 @@ New-Item -ItemType Directory -Force -Path $workRoot,$outDir,(Join-Path $outDir '
 if($ReuseDependenciesFrom){
  $reuse=(Resolve-Path -LiteralPath $ReuseDependenciesFrom).Path
  if((& (Join-Path $reuse 'runtime/node.exe') --version) -ne ('v'+$deps.node.version)){throw '复用的 Node 版本不匹配'}
- Copy-Item -LiteralPath (Join-Path $reuse 'runtime') -Destination $outDir -Recurse -Force
+ Copy-DependencyTree (Join-Path $reuse 'runtime') $outDir
  $wvLib=$reuse
 }else{
 $wvZip=Join-Path $workRoot 'webview2.zip'
@@ -51,7 +59,7 @@ Get-ChildItem -LiteralPath (Join-Path $outDir 'app') -File | Where-Object {$_.Ex
 }
 $toolsOut=Join-Path $outDir 'app/tools'
 if($ToolsDirectory){
- foreach($name in @('yt-dlp.exe','ffmpeg.exe','ffprobe.exe')){Copy-Item -LiteralPath (Join-Path $ToolsDirectory $name) -Destination $toolsOut -Force}
+ foreach($name in @('yt-dlp.exe','ffmpeg.exe','ffprobe.exe')){if($LinkDependencies){New-Item -ItemType HardLink -Path (Join-Path $toolsOut $name) -Target (Join-Path $ToolsDirectory $name)|Out-Null}else{Copy-Item -LiteralPath (Join-Path $ToolsDirectory $name) -Destination $toolsOut -Force}}
 }else{
  $yt=Join-Path $workRoot 'yt-dlp.exe'
  if(!(Test-Path -LiteralPath $yt)){Download-VerifiedTLS $deps.videoTools.ytDlpUrl $yt}
@@ -103,4 +111,4 @@ $versionInfo=@{name='轻摘';version=$Version;platform='win-x64';builtAt=[DateTi
 [IO.File]::WriteAllText((Join-Path $outDir 'version.json'),$versionInfo,[Text.UTF8Encoding]::new($false))
 foreach($f in @('README.md','THIRD-PARTY-NOTICES.md','导入旧资料.ps1','导入旧资料.cmd','启动轻摘.cmd')){Copy-Item -LiteralPath (Join-Path $sourceRoot "distribution/$f") -Destination $outDir}
 Write-Host "构建成功：$outDir"
-& (Join-Path $sourceRoot 'publish-package.ps1') -InstallDirectory $outDir -Version $Version
+& (Join-Path $sourceRoot 'publish-package.ps1') -InstallDirectory $outDir -Version $Version -LinkArchives:$LinkDependencies

@@ -1,4 +1,4 @@
-﻿param([Parameter(Mandatory=$true)][string]$InstallDirectory,[string]$Version='',[string]$Repository='Soul1380/html-gentlypick',[string]$ReleaseNotes='', [switch]$ReplaceGenerated)
+﻿param([Parameter(Mandatory=$true)][string]$InstallDirectory,[string]$Version='',[string]$Repository='Soul1380/html-gentlypick',[string]$ReleaseNotes='', [switch]$ReplaceGenerated, [switch]$LinkArchives)
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'version-tools.ps1')
 $Version=Get-ProjectVersion -Root $PSScriptRoot -Requested $Version
@@ -13,7 +13,7 @@ if(-not $ReplaceGenerated -and ((Test-Path -LiteralPath $zip) -or (Test-Path -Li
 $names=@('轻摘.exe','Updater.exe','轻摘更新.exe','Microsoft.Web.WebView2.Core.dll','Microsoft.Web.WebView2.WinForms.dll','WebView2Loader.dll','version.json','README.md','THIRD-PARTY-NOTICES.md','启动轻摘.cmd','导入旧资料.cmd','导入旧资料.ps1','app','runtime')
 $files=@();foreach($name in $names){$path=Join-Path $root $name;if(-not (Test-Path -LiteralPath $path)){throw "缺少发布文件：$name"};$files+=$path}
 Compress-Archive -LiteralPath $files -DestinationPath $zip -Force
-Copy-Item -LiteralPath $zip -Destination $installer -Force
+if($LinkArchives){if(Test-Path -LiteralPath $installer){throw '安装压缩包已存在，不能创建链接'};New-Item -ItemType HardLink -Path $installer -Target $zip|Out-Null}else{Copy-Item -LiteralPath $zip -Destination $installer -Force}
 $hash=(Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()
 [IO.File]::WriteAllText((Join-Path $out 'SHA256.txt'),"$hash  LightExcerpt-win-x64-update.zip`r`n",[Text.UTF8Encoding]::new($false))
 Write-Host "更新包：$zip"

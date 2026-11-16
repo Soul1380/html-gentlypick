@@ -40,9 +40,9 @@
 <ol class="flow"><li><strong>打开“分析报表”</strong><small>点击“选择摘录项目与文章”</small></li><li><strong>勾选整个项目</strong><small>也可以展开，只选其中几篇</small></li><li><strong>选报告类型</strong><small>整理要点、做对比或提取数据</small></li><li><strong>生成 → 核对 → 导出</strong><small>保留来源与原文证据</small></li></ol>
 <figure class="guide-figure"><button class="image-open" data-image="projects" aria-label="放大按项目选择资料的示例"><img src="/tutorial-assets/projects.png" width="1080" height="384" alt="选择资料窗口：勾选项目可选中整组文章，确认选择后返回报告页面" loading="lazy"></button><figcaption>项目名前的勾选框控制整组文章；“查看文章”用于只选一部分。确认后返回原页面。</figcaption></figure>
 <div class="two-col"><div class="mini-card"><h3>基础整理</h3><p>先做程序能完成的提取和统计，不需要先配 AI。适合检查资料有没有收对。</p></div><div class="mini-card"><h3>AI 分析</h3><p>需要先配置并测试模型。资料较多时会分批处理；失败后可以重试没有完成的批次。</p><button type="button" data-help-action="ai">去配置 AI</button></div></div>
-<div class="tip">AI 的结论要对照来源看。当前单次最多选 1000 篇，每篇最多取前 8000 字；超长文章后半部分的细节可能没有进入分析。分批结果也不等于已经做过所有文章之间的综合比较。</div>
+<div class="tip">AI 的结论要对照来源看。当前单次最多选 1000 篇，使用已保存的完整正文；长文分段处理后再逐章讲解。分批结果也不等于已经做过所有文章之间的综合比较。</div>
 <button type="button" data-help-action="analysis">去“分析报表”</button>
-</section>
+<div class="tip"><strong>需要Excel和图表？</strong>在报告下点击“下载 Excel 表格”。若原文没有明确数据表，先点“添加 / 更新数据表”，粘贴或导入 CSV，填写指标、单位、统计范围。日期数据可生成折线图；完整组成可生成饼图；样本分布可生成直方图；成对数值可生成散点图。条件不足时只保留明细，不强行画图。PDF和Excel使用同一份数据。</div></section>
 
 <section class="chapter" id="models" data-keywords="AI 模型 Ollama DeepSeek Whisper GGUF 安装 下载 导入 启动 刷新 密钥 API 接口 Python">
 <div class="chapter-title"><span>06</span><div><h2>AI 怎么接上？先选本地，还是在线</h2><p>DeepSeek 等文字模型负责读文字、整理内容；Whisper 负责把声音转成文字。两种用途不要选反。</p></div></div>
