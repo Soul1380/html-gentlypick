@@ -15,7 +15,7 @@ internal sealed class Installer : Form {
   Controls.Add(new Label{Text="安装轻摘",Font=new Font(Font.FontFamily,18,FontStyle.Bold),AutoSize=true,Location=new Point(24,20)});
   Controls.Add(new Label{Text="安装位置（请选择空文件夹，用户数据会保存在此处）",AutoSize=true,Location=new Point(26,76)});
   path.SetBounds(28,104,478,28);path.Text=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Programs","GentlyPick");Controls.Add(path);
-  browse.Text="↵";browse.AccessibleName="选择安装目录";browse.SetBounds(506,103,38,30);browse.Click+=(s,e)=>{try{string selected=LightExcerpt.ModernFolderPicker.Show(Handle,path.Text,"选择安装目录");if(!String.IsNullOrEmpty(selected))path.Text=selected;}catch(Exception x){MessageBox.Show(x.Message,"选择目录失败");}};path.KeyDown+=(s,e)=>{if(e.KeyCode==Keys.Enter){e.SuppressKeyPress=true;browse.PerformClick();}};Controls.Add(browse);
+  browse.Text="\uE8B7";browse.Font=new Font("Segoe MDL2 Assets",12);browse.AccessibleName="选择安装目录";browse.SetBounds(506,103,38,30);browse.Click+=(s,e)=>{try{string selected=LightExcerpt.ModernFolderPicker.Show(Handle,path.Text,"选择安装目录");if(!String.IsNullOrEmpty(selected))path.Text=selected;}catch(Exception x){MessageBox.Show(x.Message,"选择目录失败");}};path.KeyDown+=(s,e)=>{if(e.KeyCode==Keys.Enter){e.SuppressKeyPress=true;browse.PerformClick();}};Controls.Add(browse);
   bar.SetBounds(28,153,516,12);Controls.Add(bar);state.SetBounds(28,172,516,25);state.Text="准备安装";Controls.Add(state);
   install.Text="安装";install.SetBounds(445,210,100,32);install.Click+=StartInstall;Controls.Add(install);FormClosing+=(s,e)=>{if(busy)e.Cancel=true;};
  }

@@ -2,9 +2,10 @@
 
 All new path fields, option selectors and secondary windows must reuse `app/ui-components.js` and `app/ui-components.css`.
 
-- Use `GPUI.path(input, options)` for paths. Keep the Enter action inside the right edge of the field. Use the shared desktop folder dialog with an address bar, never `FolderBrowserDialog`.
+- Use `GPUI.path(input, options)` for paths. Use a folder browsing icon inside the right edge of the field; Enter is its keyboard shortcut. Use the shared desktop folder dialog with an address bar, never `FolderBrowserDialog`.
 - Preserve native dropdowns for short option sets such as collection type, entry mode, sort order, quality and output format. Search dialogs must opt in with a variant or `data-ui-picker`; never globally convert all selects.
 - Use `GPUI.variant(id, options)` before inserting a select to add a title, completion handler or special actions. Reuse the base selector; do not copy it to another page.
+- Sidebar items navigate the main workspace. Only explicit in-page management actions open secondary dialogs; never replace sidebar navigation with a modal. Path-field right buttons browse files/folders, never save; keep Apply actions outside the input and use one wrapper only.
 - Compose product workflows with `GPUI.dialog`. Model management must preserve the calling page's DOM and return with one click or Escape.
 - Keep unsaved drafts in memory. Never write API keys to local storage or draft files.
 - Refresh only reads state. It must not launch an installer, import a model or open native windows.
