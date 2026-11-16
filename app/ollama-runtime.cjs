@@ -1,0 +1,12 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),{spawn}=require('node:child_process');
+function createRuntime(options={}){
+ const request=options.fetch||fetch,launch=options.launch||((exe,args,env)=>{const child=spawn(exe,args,{env,windowsHide:true,detached:true,stdio:'ignore'});child.on('error',()=>{});child.unref();}),exists=options.exists||fs.existsSync;
+ let starting=null,lastError='',lastLaunch=0;
+ function executable(){const local=process.env.LOCALAPPDATA||path.join(os.homedir(),'AppData','Local');return [process.env.GENTLYPICK_OLLAMA,path.join(local,'Programs','Ollama','ollama.exe'),path.join(process.env.ProgramFiles||'C:/Program Files','Ollama','ollama.exe'),'D:/DeepSeekLocal/ollama/ollama.exe',...String(process.env.PATH||'').split(path.delimiter).filter(Boolean).map(p=>path.join(p,'ollama.exe'))].find(p=>p&&exists(p))||'';}
+ function modelDirectory(){if(process.env.OLLAMA_MODELS)return process.env.OLLAMA_MODELS;const exe=executable(),adjacent=exe&&path.resolve(path.dirname(exe),'..','models');if(adjacent&&exists(adjacent))return adjacent;return path.join(os.homedir(),'.ollama','models');}
+ async function status(){let exe=executable();try{const r=await request('http://127.0.0.1:11434/api/tags',{signal:AbortSignal.timeout(1500)});if(!r.ok)throw Error('HTTP '+r.status);const x=await r.json();if(!Array.isArray(x.models))throw Error('模型列表格式无效');return {available:true,installed:true,executable:exe,modelDirectory:modelDirectory(),models:x.models.filter(m=>typeof m.name==='string').map(m=>({name:m.name,size:m.size})),error:''};}catch(e){return {available:false,installed:!!exe,executable:exe,modelDirectory:modelDirectory(),models:[],error:lastError||e.message};}}
+ async function ensure(){if(starting)return starting;const s=await status();if(s.available||!s.installed)return s;if(starting)return starting;if(lastLaunch&&Date.now()-lastLaunch<30000)return s;lastLaunch=Date.now();starting=(async()=>{lastError='';try{await launch(s.executable,['serve'],{...process.env,OLLAMA_MODELS:modelDirectory(),OLLAMA_HOST:'127.0.0.1:11434'});for(let i=0;i<(options.attempts||30);i++){await new Promise(r=>setTimeout(r,options.delay??500));const current=await status();if(current.available)return current;}lastError='Ollama 启动后未响应，请检查端口或运行日志';}catch(e){lastError='Ollama 启动失败：'+e.message;}return status();})();try{return await starting}finally{starting=null}}
+ return {status,ensure,modelDirectory};
+}
+module.exports={createRuntime};

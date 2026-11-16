@@ -1,11 +1,16 @@
-﻿param([string]$RepositoryUrl='https://github.com/Soul1380/html-gentlypick.git',[switch]$NonInteractive)
+﻿param([string]$RepositoryUrl='https://github.com/Soul1380/html-gentlypick.git',[switch]$NonInteractive,[switch]$CheckOnly)
 $ErrorActionPreference='Stop'
 [Console]::OutputEncoding=[Text.UTF8Encoding]::new($false)
 $source=$PSScriptRoot
-. (Join-Path $source 'version-tools.ps1')
-$version=Get-ProjectVersion -Root $source
-foreach($required in @('app/server.cjs','desktop/Desktop.cs','build-desktop.ps1','.github/workflows/windows-release.yml')){if(!(Test-Path -LiteralPath (Join-Path $source $required))){throw "源码不完整：$required"}}
-if(!(Get-Command git -ErrorAction SilentlyContinue)){throw '请先安装 Git for Windows，再双击发布程序。'}
+try{
+ $requiredFiles=@('version-tools.ps1','version.json','dependencies.json','app/server.cjs','app/ui-components.js','app/ui-components.css','app/ui-workflows.js','desktop/Desktop.cs','desktop/SharedControls.cs','build-desktop.ps1','build-installer.ps1','publish-package.ps1','.github/workflows/windows-release.yml','AGENTS.md')
+ $missing=@($requiredFiles|Where-Object {-not(Test-Path -LiteralPath (Join-Path $source $_) -PathType Leaf)})
+ if($missing.Count){throw ('当前不是完整上传目录，缺少：'+($missing -join '、')+'。请解压并保留整个 GitHub 上传文件夹，不要只复制发布脚本，也不要放到安装程序目录运行。')}
+ . (Join-Path $source 'version-tools.ps1')
+ $version=Get-ProjectVersion -Root $source
+ if($CheckOnly){Write-Host ('检查通过：轻摘 v'+$version+'，上传依赖完整；没有连接 GitHub，也没有上传。') -ForegroundColor Green;return}
+ if(!(Get-Command git -ErrorAction SilentlyContinue)){throw '请先安装 Git for Windows，再双击发布程序。'}
+}catch{Write-Host $_.Exception.Message -ForegroundColor Red;exit 1}
 function Run-Git([string[]]$Arguments){
  & git @gitNetwork @Arguments
  if($LASTEXITCODE -ne 0){throw "Git 操作失败（$LASTEXITCODE）。没有继续执行后续发布步骤。"}
@@ -31,15 +36,15 @@ try{
  $tag=& git -C $stage tag --list "v$version"
  if($LASTEXITCODE -ne 0){throw '无法检查已发布版本。'}
  if($tag){throw "v$version 已有发布标签，请修改主目录 version.json 后再发布，不覆盖已有 Release。"}
- $rootFiles=@('version.json','version-tools.ps1','dependencies.json','README.md','.gitignore','build-desktop.ps1','build-installer.ps1','publish-package.ps1','publish-github.ps1','publish-release.ps1','publish-release.cmd','publish-v1.0.7.cmd')
+ $rootFiles=@('检查上传文件.cmd','AGENTS.md','version.json','version-tools.ps1','dependencies.json','README.md','.gitignore','build-desktop.ps1','build-installer.ps1','publish-package.ps1','publish-github.ps1','publish-release.ps1','publish-release.cmd','publish-v1.0.7.cmd')
  $files=@($rootFiles | ForEach-Object {Get-Item -LiteralPath (Join-Path $source $_) -ErrorAction Stop})
  foreach($folder in @('app','desktop','packaging','distribution','docs','tests','.github')){
   $dir=Join-Path $source $folder
   if(!(Test-Path -LiteralPath $dir)){continue}
-  $files+=Get-ChildItem -LiteralPath $dir -Recurse -File | Where-Object {
-   $_.FullName -notmatch '[\\/](UserData|node_modules|tools|media|videos|\.git|\.build|dist)[\\/]' -and
+  $files+=Get-ChildItem -LiteralPath $dir -Recurse -File -Force | Where-Object {
+   $_.FullName -notmatch '[\\/](UserData|node_modules|media|videos|\.git|\.build|dist)[\\/]' -and
    $_.Name -notin @('data.json','adapter-service-data.json','feed-request.json') -and
-   ($_.Extension -in @('.js','.cjs','.css','.html','.cs','.manifest','.ps1','.cmd','.md','.yml','.yaml','.py','.ico') -or $_.Name -eq 'package.json' -or ($_.Extension -eq '.png' -and $_.Directory.Name -in @('report-samples','video-analysis')))
+   ($_.Extension -in @('.js','.cjs','.css','.html','.cs','.manifest','.ps1','.cmd','.md','.yml','.yaml','.py','.ico','.txt') -or $_.Name -eq 'package.json' -or ($_.Extension -eq '.png' -and $_.Directory.Name -in @('report-samples','video-analysis')))
   }
  }
  foreach($file in $files){

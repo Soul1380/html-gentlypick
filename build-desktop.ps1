@@ -1,4 +1,4 @@
-﻿param([string]$Version='',[string]$ToolsDirectory='', [string]$OutputRoot='')
+﻿param([string]$Version='',[string]$ToolsDirectory='', [string]$OutputRoot='', [string]$ReuseDependenciesFrom='')
 $ErrorActionPreference='Stop'
 $sourceRoot=$PSScriptRoot
 . (Join-Path $sourceRoot 'version-tools.ps1')
@@ -13,6 +13,12 @@ $distRoot=if ($OutputRoot) { [IO.Path]::GetFullPath($OutputRoot) } else { Join-P
 $outDir=Join-Path $distRoot ('轻摘-v'+$Version)
 if(Test-Path -LiteralPath (Join-Path $outDir 'version.json')){throw '目标目录已存在完整构建，请先改名保留旧构建或使用新版本号'}
 New-Item -ItemType Directory -Force -Path $workRoot,$outDir,(Join-Path $outDir 'runtime')|Out-Null
+if($ReuseDependenciesFrom){
+ $reuse=(Resolve-Path -LiteralPath $ReuseDependenciesFrom).Path
+ if((& (Join-Path $reuse 'runtime/node.exe') --version) -ne ('v'+$deps.node.version)){throw '复用的 Node 版本不匹配'}
+ Copy-Item -LiteralPath (Join-Path $reuse 'runtime') -Destination $outDir -Recurse -Force
+ $wvLib=$reuse
+}else{
 $wvZip=Join-Path $workRoot 'webview2.zip'
 $wvVersion=$deps.webview2.version
 if(!(Test-Path -LiteralPath $wvZip)){Download-VerifiedTLS "https://api.nuget.org/v3-flatcontainer/microsoft.web.webview2/$wvVersion/microsoft.web.webview2.$wvVersion.nupkg" $wvZip}
@@ -36,6 +42,8 @@ $packageJson=@{private=$true;dependencies=@{playwright=$deps.playwright.version}
 [IO.File]::WriteAllText((Join-Path $outDir 'runtime/package.json'),$packageJson,[Text.UTF8Encoding]::new($false))
 & (Join-Path $nodeDir 'npm.cmd') install --prefix (Join-Path $outDir 'runtime') --ignore-scripts --omit=dev --no-audit --no-fund --cache (Join-Path $workRoot 'npm-cache')
 if($LASTEXITCODE -ne 0){throw 'Playwright安装失败'}
+
+}
 Copy-Item -LiteralPath (Join-Path $sourceRoot 'app') -Destination $outDir -Recurse
 Get-ChildItem -LiteralPath (Join-Path $outDir 'app') -File | Where-Object {$_.Extension -in @('.cjs','.js','.html')} | ForEach-Object {
  $content=[IO.File]::ReadAllText($_.FullName).Replace('1.0.0',$Version)
@@ -66,9 +74,9 @@ foreach($item in @(@('yt-dlp.exe',$deps.videoTools.ytDlpSha256),@('ffmpeg.exe',$
 $package=Get-Content (Join-Path $outDir 'app/package.json') -Raw -Encoding UTF8|ConvertFrom-Json
 $package | Add-Member -NotePropertyName version -NotePropertyValue $Version -Force
 [IO.File]::WriteAllText((Join-Path $outDir 'app/package.json'),($package|ConvertTo-Json -Depth 6),[Text.UTF8Encoding]::new($false))
-$wvLib=Join-Path $wvDir 'lib/net462'
+if(-not $ReuseDependenciesFrom){$wvLib=Join-Path $wvDir 'lib/net462'}
 foreach($name in @('Microsoft.Web.WebView2.Core.dll','Microsoft.Web.WebView2.WinForms.dll')){Copy-Item -LiteralPath (Join-Path $wvLib $name) -Destination $outDir}
-Copy-Item -LiteralPath (Join-Path $wvDir 'runtimes/win-x64/native/WebView2Loader.dll') -Destination $outDir
+if($ReuseDependenciesFrom){Copy-Item -LiteralPath (Join-Path $reuse 'WebView2Loader.dll') -Destination $outDir}else{Copy-Item -LiteralPath (Join-Path $wvDir 'runtimes/win-x64/native/WebView2Loader.dll') -Destination $outDir}
 $csc=Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
 foreach($type in @('Desktop','Updater')){
  $cs=(Get-Content -LiteralPath (Join-Path $sourceRoot "desktop/$type.cs") -Raw -Encoding UTF8).Replace('1.0.0',$Version)
@@ -82,6 +90,7 @@ foreach($type in @('Desktop','Updater')){
  foreach($r in $refs){$argsList+=('/reference:"'+$r+'"')}
  $argsList+=('/win32manifest:"'+(Join-Path $sourceRoot 'desktop/app.manifest')+'"')
  $argsList+=('"'+$csFile+'"')
+ if($type -eq 'Desktop'){$argsList+=('"'+(Join-Path $sourceRoot 'desktop/SharedControls.cs')+'"')}
  $extra=if($type -eq 'Desktop'){@('ReleaseFeed.cs','ReleaseClient.cs','UpdateGate.cs')}else{@('ReleaseFeed.cs','ReleaseClient.cs','PackageValidator.cs','PackageDownload.cs','UpdateLog.cs','UpdateGate.cs','ProcessIdentity.cs','ProcessTree.cs','FileTransaction.cs','UpdateCoordinator.cs')}
  foreach($f in $extra){$argsList+=('"'+(Join-Path $sourceRoot ('desktop/updater/'+$f))+'"')}
  $rsp=Join-Path $workRoot ($type+'.rsp')
