@@ -3,7 +3,7 @@ $ErrorActionPreference='Stop'
 [Console]::OutputEncoding=[Text.UTF8Encoding]::new($false)
 $source=$PSScriptRoot
 try{
- $requiredFiles=@('version-tools.ps1','version.json','dependencies.json','app/server.cjs','app/ui-components.js','app/ui-components.css','app/ui-theme.css','app/embedded-ui.css','app/ui-scrollbars.js','app/ui-scrollbars.css','app/ui-workflows.js','desktop/Desktop.cs','desktop/SharedControls.cs','build-desktop.ps1','build-installer.ps1','publish-package.ps1','.github/workflows/windows-release.yml','AGENTS.md')
+ $requiredFiles=@('version-tools.ps1','version.json','dependencies.json','app/server.cjs','app/ui-components.js','app/ui-components.css','app/ui-theme.css','app/embedded-ui.css','app/ui-scrollbars.js','app/ui-scrollbars.css','app/ui-workflows.js','app/tutorial.html','app/tutorial.css','app/tutorial.js','app/tutorial-assets/workspace.png','app/tutorial-assets/task.png','app/tutorial-assets/projects.png','app/tutorial-assets/models.png','app/tutorial-assets/video.png','desktop/Desktop.cs','desktop/SharedControls.cs','build-desktop.ps1','build-installer.ps1','publish-package.ps1','.github/workflows/windows-release.yml','AGENTS.md')
  $missing=@($requiredFiles|Where-Object {-not(Test-Path -LiteralPath (Join-Path $source $_) -PathType Leaf)})
  if($missing.Count){throw ('当前不是完整上传目录，缺少：'+($missing -join '、')+'。请解压并保留整个 GitHub 上传文件夹，不要只复制发布脚本，也不要放到安装程序目录运行。')}
  . (Join-Path $source 'version-tools.ps1')
@@ -44,7 +44,7 @@ try{
   $files+=Get-ChildItem -LiteralPath $dir -Recurse -File -Force | Where-Object {
    $_.FullName -notmatch '[\\/](UserData|node_modules|media|videos|\.git|\.build|dist)[\\/]' -and
    $_.Name -notin @('data.json','adapter-service-data.json','feed-request.json') -and
-   ($_.Extension -in @('.js','.cjs','.css','.html','.cs','.manifest','.ps1','.cmd','.md','.yml','.yaml','.py','.ico','.txt') -or $_.Name -eq 'package.json' -or ($_.Extension -eq '.png' -and $_.Directory.Name -in @('report-samples','video-analysis')))
+   ($_.Extension -in @('.js','.cjs','.css','.html','.cs','.manifest','.ps1','.cmd','.md','.yml','.yaml','.py','.ico','.txt') -or $_.Name -eq 'package.json' -or ($_.Extension -eq '.png' -and $_.Directory.Name -in @('report-samples','video-analysis','tutorial-assets')))
   }
  }
  foreach($file in $files){

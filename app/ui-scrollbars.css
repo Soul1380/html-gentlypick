@@ -15,3 +15,5 @@ html.gp-overlay-scrollbars::-webkit-scrollbar,html.gp-overlay-scrollbars *::-web
 @media print{.gp-scrollbar{display:none!important}}
 
 html.gp-overlay-scrollbars select{scrollbar-width:auto!important}html.gp-overlay-scrollbars select::-webkit-scrollbar{display:initial!important;width:auto!important;height:auto!important}
+
+html.gp-root-scrollable-y>body{padding-right:14px;box-sizing:border-box}html.gp-scroll-suspended .gp-scrollbar{opacity:0!important;pointer-events:none!important}

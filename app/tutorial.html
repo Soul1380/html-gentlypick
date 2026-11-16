@@ -1,1 +1,87 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>轻摘 · 使用教程</title><style>*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:30px}body{margin:0;background:#fafbf9;color:#304035;font:15px/1.85 system-ui,'Microsoft YaHei',sans-serif}header{max-width:1000px;margin:60px auto 32px;padding:0 24px}h1{font-size:36px;font-weight:500;margin:0}header p{color:#78867b}main{max-width:1000px;margin:auto;padding:0 24px 80px;display:grid;grid-template-columns:170px 1fr;gap:48px}nav{position:sticky;top:28px;align-self:start;display:grid;gap:8px}a{color:#52765f;text-decoration:none}nav a{padding:8px 12px;border-radius:8px}nav a:hover{background:#eaf0e8}section{padding:26px 0 32px;border-bottom:1px solid #e2e8e0}h2{font-size:23px;font-weight:550;margin:0 0 14px}h3{font-size:15px}p{margin:12px 0}small{color:#839082}details{margin-top:30px;padding:20px;background:#eef3ec;border-radius:12px}summary{cursor:pointer}li{margin:12px 0}@media(max-width:650px){main{display:block}nav{position:static;display:flex;flex-wrap:wrap;gap:2px}header{margin-top:32px}}@media(prefers-color-scheme:dark){body{background:#1d211e;color:#dce6dd}a{color:#b0d3b8}section{border-color:#384239}details,nav a:hover{background:#29332b}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}</style></head><body><header><small>轻摘 / HELP</small><h1>使用教程</h1><p>需要时查阅，让工作界面保持简洁。</p></header><main><nav><a href="#s0">开始使用</a><a href="#s1">采集方式</a><a href="#s2">深入检索</a><a href="#s3">资料与报告</a><a href="#s4">文件保存</a><a href="#s5">界面操作</a><a href="#s6">排查问题</a></nav><article><section id="s0"><small>01 · 开始使用</small><h2>新建与运行任务</h2><p>点击右上角的加号创建任务。输入网页 URL，或选择搜索任务并填写主题与网站范围。保存后，点击任务上的运行图标开始摘录。</p><p>定时采集需要主程序及本地服务保持运行。任务卡会显示当前状态、最近运行时间与查询明细。</p></section><section id="s1"><small>02 · 采集方式</small><h2>文字、图片与视频</h2><p>文字任务收集正文。图片任务可开启浏览器渲染、进入详情页获取图片。视频任务负责下载，文件大小上限与数量在任务中设置。</p><p>网页需要登录时，打开采集浏览器完成登录或验证，再点击继续采集。普通浏览器的登录状态不一定与采集浏览器共用。</p></section><section id="s2"><small>03 · 深入检索</small><h2>沿链接继续查找</h2><p>深度模式可分别选择正文超链接和相关推荐链接，并设置深度与页面数量。</p><p>通过查询明细查看每个 URL 的结果；失败原因、重复结果和超限情况会保留在任务中。</p></section><section id="s3"><small>04 · 资料与报告</small><h2>查看、分析与导出</h2><p>进入摘录档案，按任务、运行批次选择资料；点击文章查看正文及来源。使用阅读区的导出或复制图标保存内容。</p><p>在 AI 设置中填写所选服务的接口与密钥；分析报表中选择报表大类与数据选项后生成。普通模板字段替换不调用 AI。分析结果以实际资料与运行状态为准。</p></section><section id="s4"><small>05 · 文件保存</small><h2>调整目录</h2><p>搜索偏好中可设置默认下载目录与 PDF 报告目录；每个任务也可以指定下载目录。</p><p>更改目录后，按弹窗选择是否转移已有文件。选择不转移时，新位置用于后续保存。原文件被手动移动或删除后，已有记录可能无法打开。</p></section><section id="s5"><small>06 · 界面操作</small><h2>认识图标</h2><p>将鼠标移到图标上，或使用 Tab 键聚焦，查看操作名称。加号为新建，三角为运行，铅笔为编辑，向下箭头为下载，垃圾桶为删除。</p><p>侧栏底部的月亮／太阳切换浅色与深色，书本打开本教程。主题选择会保存在当前浏览器。</p></section><section id="s6"><small>07 · 排查问题</small><h2>没有结果或连接失败</h2><p>先检查任务明细中的失败 URL、网站范围与关键词。遇到需要登录或动态渲染的网站，使用已有的浏览器采集功能。</p><p>连接错误、下载失败和 AI 请求错误会继续在主界面显示。教程仅收纳操作说明，不隐藏运行故障。</p></section><details><summary>任务设置字段说明</summary><ul><li>支持哔哩哔哩首页、播放页及搜索结果页；其他站点先尝试标准 VideoObject 元数据。搜索入口可填写 https://search.bilibili.com/video?keyword={{query}}。播放量等是采集时的快照。默认单文件上限500MB，可在本任务设置中调整。</li><li>需要可用的 SearXNG 服务，并启用 JSON 接口；搜索主题会发送到该服务。无法连接时会在任务明细中显示原因。</li><li>可填首页、新闻列表或 RSS。站内搜索地址可用 {{query}} 代表提示词；普通地址也会尝试搜索引擎补充发现，仅摘录指定域名及其子域名。</li><li>关闭时直接尝试读取网页；登录、验证码或服务器拒绝仍可能导致采集失败。</li><li>起始文章为第0层，下一跳为第1层。搜索任务沿用指定网站范围；单 URL 任务限同域及子域。页面上限包含失败、重复页面；搜索任务也受每次摘录篇数限制。仅检索页面已包含的链接，不执行动态“换一批”。</li><li>可用字段：{{title}} 标题 · {{time}} 时间 · {{url}} 来源 · {{text}} 正文。直接替换字段，不调用 AI。</li><li>在浏览器中打开原文，复制你可访问的文章文字并粘贴到下面。报告使用当前任务模板，标记为“手动导入”；此操作不会启用网站自动采集。</li></ul></details></article></main></body></html>
+<!doctype html><html lang="zh-CN" data-ui-page="tutorial"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>轻摘 · 照着做的使用教程</title><script src="/ui-components.js"></script><link rel="stylesheet" href="/tutorial.css"><script src="/tutorial.js" defer></script></head><body>
+<main class="guide-main">
+<header class="guide-header"><div><span class="eyebrow">轻摘使用教程</span><h1>想做什么，从这里开始</h1><p>不用先弄懂所有设置。选一个目标，照着箭头走一遍。</p></div><button type="button" data-help-action="back">← 返回刚才的页面</button></header>
+<div class="guide-search"><label for="guideSearch">找一个问题</label><input id="guideSearch" type="search" placeholder="例如：下载模型、视频转文字、保存目录、没有结果"><small id="guideSearchCount">下面的示例可以照填，也可以一键带到任务草稿中。</small></div>
+<nav class="guide-nav" aria-label="教程目录"><a href="#start">先看一遍</a><a href="#articles">一个网址</a><a href="#search">找多篇文章</a><a href="#media">图片与下载</a><a href="#reports">生成报告</a><a href="#models">AI 与模型</a><a href="#video">整理视频</a><a href="#paths">保存与返回</a><a href="#updates">更新与备份</a><a href="#problems">解决问题</a></nav>
+<p id="guideEmpty" class="empty-message" hidden>暂时没有匹配的章节。试试“模型”“视频”或“下载”。</p>
+
+<section class="chapter" id="start" data-keywords="开始 入门 新建 图标 工具栏 导航 流程">
+<div class="chapter-title"><span>01</span><div><h2>先认清：轻摘把什么变成什么？</h2><p>把网页和文件收进来，再按你的目的整理。收集和 AI 分析是两步。</p></div></div>
+<ol class="flow"><li><strong>找到素材</strong><small>文章网址、搜索主题或视频</small></li><li><strong>采集并核对</strong><small>在“摘录档案”看实际收到的内容</small></li><li><strong>整理成报告</strong><small>选资料，按需要使用 AI</small></li><li><strong>保存或导出</strong><small>保留原文、来源和整理结果</small></li></ol>
+<div class="choice-grid"><a href="#articles"><strong>我已经有文章链接</strong><span>直接摘录这篇文章 →</span></a><a href="#search"><strong>我只有一个主题</strong><span>在指定网站找多篇文章 →</span></a><a href="#video"><strong>我想整理视频内容</strong><span>视频 → 文字 → 图文时间轴 →</span></a></div>
+<figure class="guide-figure"><button class="image-open" data-image="workspace" aria-label="放大工作台操作图"><img src="/tutorial-assets/workspace.png" width="1280" height="900" alt="工作台示例：右上角新建任务，左侧摘录档案查看采集结果" loading="lazy"></button><figcaption>工作台示例。看不清时点击图片放大。左侧选项切换右侧页面；页面内的“管理模型”才会打开可返回的小窗口。</figcaption></figure>
+<div class="tip"><strong>几个名字先说清：</strong>“任务”是一次收集计划；“摘录”是已经收到的内容；“分析报告”是对这些内容的整理。保存任务后，还需要点击任务卡上的“搜索并摘录”或“立即摘录”才会开始收集。</div>
+</section>
+
+<section class="chapter" id="articles" data-keywords="网址 链接 URL 正文 文字文章 单篇 原文 登录">
+<div class="chapter-title"><span>02</span><div><h2>已有一个文章网址：把正文摘下来</h2><p>适合收藏新闻、教程、产品介绍等你能打开的网页。</p></div></div>
+<ol class="flow"><li><strong>监测任务</strong><small>右上角点“新建任务”</small></li><li><strong>选文字文章</strong><small>入口类型选“直接 URL”</small></li><li><strong>粘贴文章链接</strong><small>不是搜索结果页中的标题文字</small></li><li><strong>保存 → 立即摘录</strong><small>完成后去“摘录档案”查看</small></li></ol>
+<div class="example-fields"><div><span>任务名称 · 方便你自己找</span><code>我收藏的电池技术文章</code></div><div><span>文章链接 · 换成你在浏览器里打开的原文</span><code>https://example.com/news/001</code><small>这是格式示例，不是可采集的真实新闻。请粘贴你自己的文章地址。</small></div></div>
+<div class="two-col"><div class="mini-card"><h3>成功后应该看到什么？</h3><p>文章标题、正文和来源链接。先点开一篇看看内容完整不完整，再决定是否交给 AI。</p></div><div class="mini-card"><h3>需要登录怎么办？</h3><p>按任务提示到采集浏览器完成登录，再重试。平时用的 Chrome 登录状态，不一定与采集窗口共用。</p></div></div>
+<button type="button" data-help-action="tasks">去“监测任务”</button>
+</section>
+
+<section class="chapter" id="search" data-keywords="搜索 多篇 项目 主题 关键词 站点 网站 范围 示例 输入 草稿">
+<div class="chapter-title"><span>03</span><div><h2>只有一个主题：一次找多篇文章</h2><p>你告诉轻摘“找什么”和“允许去哪些网站找”，它再把找到的文章收进同一个项目。</p></div></div>
+<ol class="flow"><li><strong>输入主题</strong><small>例如：新能源汽车 电池 技术进展</small></li><li><strong>限定网站</strong><small>例如：新华社网站</small></li><li><strong>保存并运行</strong><small>先少量测试，确认方向正确</small></li><li><strong>按项目查看</strong><small>一组文章，不用重新逐篇寻找</small></li></ol>
+<div class="demo-panel"><div class="demo-heading"><h3>亲手填一次，看看流程</h3><span class="demo-tag">安全演示 · 不联网、不调用 AI</span></div><label for="demoScenario">选择演示</label><select id="demoScenario"><option value="search">按主题找多篇文章</option><option value="url">我已有一篇文章链接</option></select><label for="demoName">任务名称</label><input id="demoName" maxlength="80"><label id="demoQueryLabel" for="demoQuery">你想找什么？</label><textarea id="demoQuery" rows="2" maxlength="1500"></textarea><label id="demoSourceLabel" for="demoSource">允许搜索的网站</label><input id="demoSource" maxlength="3000"><small id="demoSourceHint">网站范围一行一个。主题不是网址，不要填在这里。</small><div class="demo-actions"><button type="button" id="demoRun" class="primary">演示这个过程</button><button type="button" id="fillTask">填入新任务草稿</button><button type="button" id="copyDemo">复制示例内容</button></div><ol class="flow demo-flow" id="demoSteps"><li><strong>填写计划</strong><small>任务名称、主题与范围</small></li><li><strong>保存任务</strong><small>实际使用时要点保存</small></li><li><strong>运行任务</strong><small>运行后才会联网查找</small></li><li><strong>查看结果</strong><small>到摘录档案核对原文</small></li></ol><div id="demoOutput" role="status">改一改上面的内容，再点击“演示这个过程”。“填入草稿”只帮你填表，不会保存或运行任务。</div></div>
+<figure class="guide-figure"><button class="image-open" data-image="task" aria-label="放大任务输入示例"><img src="/tutorial-assets/task.png" width="1000" height="792" alt="新建任务示例：任务名称、采集内容、入口类型和搜索主题的填写位置" loading="lazy"></button><figcaption>图中填写的是示例。新手先用少量结果和较浅的查找层数，核对无误后再增加数量。</figcaption></figure>
+<details class="guide-details"><summary>“深入查找”是怎么回事？</summary><p>普通收集先处理找到的页面。开启深入查找后，会继续点页面里已经出现的文章链接或相关推荐。层数越多、页面数量越大，等待越久；它不会无限查完整个网站。</p><div class="inline-flow"><span>找到的文章</span><b>→</b><span>文章内链接</span><b>→</b><span>下一篇文章</span></div></details>
+</section>
+
+<section class="chapter" id="media" data-keywords="图片 图集 视频 下载 评论 B站 BV 附件 PDF Word Excel 文件">
+<div class="chapter-title"><span>04</span><div><h2>收图片、下视频、找评论和附件</h2><p>新建任务时，先把“采集内容”选对。下载视频和分析视频内容是不同的事情。</p></div></div>
+<div class="media-grid"><div class="mini-card"><h3>图片 / 图集</h3><p>图片列表或图集网址 → 选择图片采集 → 设置数量 → 运行 → 在结果中查看图片。</p><small>页面需要滚动后才显示图片时，可以尝试浏览器渲染和滚动设置。</small></div><div class="mini-card"><h3>视频下载</h3><p>视频或列表网址 → 选择视频 → 设置数量与文件大小 → 运行 → 打开下载位置。</p><small>下载只保存视频。要把视频整理成要点，请继续看“整理视频”。登录、权限和站点限制仍可能让下载失败。</small></div><div class="mini-card"><h3>B 站评论</h3><p>普通 BV / av 视频链接 → 选择评论 → 设置数量、排序 → 运行 → 查看或导出表格。</p><small>适合整理常见问题和观众反馈；番剧、电影页面不是这项功能的普通视频入口，也不能保证得到全部评论。</small></div><div class="mini-card"><h3>网页附件</h3><p>包含附件链接的网页 → 选择附件 → 决定是否下载文件 → 运行 → 查看结果。</p><small>可收集网页里能找到的 PDF、Word、Excel 等附件链接；隐藏在复杂按钮后的文件可能找不到。</small></div></div>
+<div class="tip">结果少于预期时，先看任务明细里的失败、重复和超限原因。不要马上把数量加到很大。</div>
+</section>
+
+<section class="chapter" id="reports" data-keywords="摘录 档案 报告 AI分析 基础整理 全选 分组 项目 文章 批次 导出">
+<div class="chapter-title"><span>05</span><div><h2>一组文章，怎样变成一份报告？</h2><p>先收集，再选择。你不必在长列表里一篇篇勾选整个项目。</p></div></div>
+<ol class="flow"><li><strong>打开“分析报表”</strong><small>点击“选择摘录项目与文章”</small></li><li><strong>勾选整个项目</strong><small>也可以展开，只选其中几篇</small></li><li><strong>选报告类型</strong><small>整理要点、做对比或提取数据</small></li><li><strong>生成 → 核对 → 导出</strong><small>保留来源与原文证据</small></li></ol>
+<figure class="guide-figure"><button class="image-open" data-image="projects" aria-label="放大按项目选择资料的示例"><img src="/tutorial-assets/projects.png" width="1080" height="384" alt="选择资料窗口：勾选项目可选中整组文章，确认选择后返回报告页面" loading="lazy"></button><figcaption>项目名前的勾选框控制整组文章；“查看文章”用于只选一部分。确认后返回原页面。</figcaption></figure>
+<div class="two-col"><div class="mini-card"><h3>基础整理</h3><p>先做程序能完成的提取和统计，不需要先配 AI。适合检查资料有没有收对。</p></div><div class="mini-card"><h3>AI 分析</h3><p>需要先配置并测试模型。资料较多时会分批处理；失败后可以重试没有完成的批次。</p><button type="button" data-help-action="ai">去配置 AI</button></div></div>
+<div class="tip">AI 的结论要对照来源看。当前单次最多选 1000 篇，每篇最多取前 8000 字；超长文章后半部分的细节可能没有进入分析。分批结果也不等于已经做过所有文章之间的综合比较。</div>
+<button type="button" data-help-action="analysis">去“分析报表”</button>
+</section>
+
+<section class="chapter" id="models" data-keywords="AI 模型 Ollama DeepSeek Whisper GGUF 安装 下载 导入 启动 刷新 密钥 API 接口 Python">
+<div class="chapter-title"><span>06</span><div><h2>AI 怎么接上？先选本地，还是在线</h2><p>DeepSeek 等文字模型负责读文字、整理内容；Whisper 负责把声音转成文字。两种用途不要选反。</p></div></div>
+<div class="two-col"><div class="mini-card"><h3>用电脑里的模型</h3><p>先在“本地模型”确认服务已运行、模型可用，再到 AI 设置中选择“本地模型 · Ollama”。</p><ol class="small-flow"><li>启动或补全 Ollama 运行环境</li><li>已有模型文件就导入；没有再下载</li><li>AI 设置选 Ollama 和对应模型</li><li>勾选启用、保存，再测试</li></ol><small>本地 Ollama 通常不用填写 API 密钥。首次使用要加载模型，可能等得更久。</small><button type="button" data-help-action="models">去“本地模型”</button></div><div class="mini-card"><h3>用服务商提供的在线 AI</h3><p>从服务商控制台取得完整接口地址、模型名称和密钥，按原样填进 AI 设置。</p><ol class="small-flow"><li>选择服务商</li><li>核对完整接口地址和模型名称</li><li>填写密钥，勾选启用及发送授权</li><li>保存设置 → 测试接口</li></ol><small>费用和可用模型以服务商控制台为准。不要把密钥发给别人或放进截图。</small></div></div>
+<h3>“下载好了”和“能选来用”差在哪？</h3><div class="inline-flow"><span>GGUF 文件在磁盘上</span><b>→ 导入 →</b><span>出现在可用模型列表</span><b>→ 选择 →</b><span>AI 设置或视频分析调用它</span></div>
+<figure class="guide-figure"><button class="image-open" data-image="models" aria-label="放大本地模型状态示例"><img src="/tutorial-assets/models.png" width="1280" height="900" alt="本地模型示例：运行状态、可用模型数量以及查看模型列表入口" loading="lazy"></button><figcaption>绿色表示已经可用，黄色表示等待导入，蓝色表示处理中，红色表示失败。点文件夹图标可打开对应位置。</figcaption></figure>
+<div class="tip"><strong>已经导入过，不要一出问题就重新下载。</strong>先看 Ollama 是否运行、是否读取原来的模型目录。刷新只重新读状态，不会重新安装或导入模型。</div>
+<details class="guide-details"><summary>安装 Whisper 时怎么填？</summary><p>选择一个版本，设置保存目录，点“自动查找”找 Python。找到后再安装。进度分为准备环境、安装组件、下载模型、校验模型；没有百分比的阶段也可能正在正常处理。电脑没有 Python 时，需要先准备 Python，或填写已有的 python.exe 路径。</p><p>小版本通常下载更快、占用更少；是否换更大的版本，应看自己的电脑和实际转写效果，不必一开始全装。</p></details>
+</section>
+
+<section class="chapter" id="video" data-keywords="视频分析 音频 语音 字幕 转写 转文字 SRT VTT 时间轴 截图 图文 导出 Whisper">
+<div class="chapter-title"><span>07</span><div><h2>把视频整理成“文字＋截图”</h2><p>第一次建议用短视频练习，先让转写成功，再做 AI 整理。</p></div></div>
+<ol class="flow"><li><strong>导入视频</strong><small>点击文件夹图标选择本机文件</small></li><li><strong>选择转写方式</strong><small>例如已安装的 Whisper</small></li><li><strong>仅转写，先检查</strong><small>看看人名、数字有没有听错</small></li><li><strong>分析与导出</strong><small>查看时间轴，调整截图再保存</small></li></ol>
+<figure class="guide-figure"><button class="image-open" data-image="video" aria-label="放大视频分析操作示例"><img src="/tutorial-assets/video.png" width="1280" height="900" alt="视频分析示例：左侧导入视频，右侧分别设置语音转文字和文字分析模型" loading="lazy"></button><figcaption>右侧分两部分：① 声音转文字；② 把文字整理成要点。只填其中一部分，并不能完成全部流程。</figcaption></figure>
+<div class="two-col"><div class="mini-card"><h3>我已经有字幕</h3><p>直接导入 SRT / VTT 字幕 → 选择文字分析模型 → 分析已有转写。这样可以跳过声音识别这一步。</p></div><div class="mini-card"><h3>我想先看看转写准不准</h3><p>先选“仅转写”。确认文字后再点“分析已有转写”；不必每次都从头处理视频。</p></div></div>
+<div class="tip">当前视频分析支持 20 分钟以内、300 MB 以内的视频。长视频请先分段。这里的限制与“视频下载任务”的文件大小设置是两回事。</div>
+<button type="button" data-help-action="video">去“视频分析”</button>
+</section>
+
+<section class="chapter" id="paths" data-keywords="路径 文件夹 保存 目录 返回 输入 丢失 刷新 滚动 图标">
+<div class="chapter-title"><span>08</span><div><h2>文件在哪？怎么选目录、怎么返回？</h2><p>输入框右边的文件夹图标是浏览位置，不是保存按钮。</p></div></div>
+<div class="path-illustration"><span>D:\轻摘资料\报告</span><span class="folder-illustration" aria-label="文件夹图标">📁</span></div>
+<ol class="flow"><li><strong>直接输入或粘贴路径</strong><small>例如 D:\轻摘资料\报告</small></li><li><strong>点文件夹或按 Enter</strong><small>在大窗口里输入地址、选文件夹</small></li><li><strong>点击“应用路径”</strong><small>设置页中，确认后才正式保存</small></li></ol>
+<div class="two-col"><div class="mini-card"><h3>已有文件要不要一起搬？</h3><p>应用目录时，按弹窗选择。选择不转移，之后保存到新位置，原文件保留在旧位置；手动移动文件后，旧记录可能需要重新定位。</p></div><div class="mini-card"><h3>打开管理窗口后怎么回去？</h3><p>点“← 返回”或关闭窗口，回到原输入页面。左侧选项卡则是在右侧主区域换页，不是打开小窗口。</p></div></div>
+<p>页面切换会保留本次运行中的输入草稿。<strong>关闭软件后，未保存草稿和 API 密钥会清空</strong>；普通设置请点击保存。不要把还没保存的输入当成已经保存。</p>
+<p>滚动条只在滚动或拖动时出现，停下后收起；鼠标滚轮、Page Up / Page Down 仍可以正常翻页。</p><button type="button" data-help-action="preferences">去设置保存目录</button>
+</section>
+
+<section class="chapter" id="updates" data-keywords="更新 升级 安装 备份 UserData 数据 迁移 分享 发布 GitHub">
+<div class="chapter-title"><span>09</span><div><h2>升级前后，怎样保留自己的资料？</h2><p>日常使用者不需要拿源码文件操作。</p></div></div>
+<ol class="flow"><li><strong>先等任务完成</strong><small>不要中途打断下载或分析</small></li><li><strong>版本与更新</strong><small>点“检查更新”</small></li><li><strong>按提示完成升级</strong><small>需要时关闭主窗口</small></li><li><strong>重新打开核对</strong><small>看任务、资料和模型状态</small></li></ol>
+<div class="example-fields"><div><span>最重要的本机资料文件夹</span><code>UserData</code><small>它在轻摘程序目录里。完整复制这个文件夹可备份任务、摘录和软件内的登录资料。单独存放的模型还需要单独保留。</small></div></div>
+<div class="tip">换目录或换电脑前，先退出软件并保留旧目录。不要用新的空 UserData 覆盖旧资料。确认新版能正常读取后，再决定是否处理旧版本文件。</div>
+<details class="guide-details"><summary>如果你是发布者，要把软件给别人用</summary><p>使用完整的“GitHub 上传文件”目录，先运行检查脚本，再运行发布脚本。上传后还要等 GitHub 构建成功；成功发布安装程序和更新包后，新用户才能下载，旧用户才能检查更新。不要只把安装程序复制到源码目录，也不要给更新包随便改名。</p></details>
+</section>
+
+<section class="chapter" id="problems" data-keywords="问题 错误 失败 没结果 空白 慢 超时 下载不动 无法连接 重复 模型">
+<div class="chapter-title"><span>10</span><div><h2>遇到问题，先看哪一处？</h2><p>先看实际状态和错误原文，再决定改什么。不要反复下载或把所有开关一起改掉。</p></div></div>
+<div class="problem-list"><div><h3>采集不到文章</h3><p>打开任务明细 → 看失败网址 → 检查链接是否能打开、网站范围是否正确 → 需要时登录或尝试浏览器渲染 → 少量重试。</p></div><div><h3>模型明明下好了，却选不到</h3><p>本地模型 → 看服务是否运行 → 确认模型是“可用”还是“待导入” → 检查原模型目录。已导入的模型先恢复连接，不要立即重新下载。</p></div><div><h3>AI 一直等待、最后超时</h3><p>AI 设置先测试接口 → 确认模型名和地址 → 本地模型等首次加载完成 → 必要时调整等待时间 → 重试未完成的批次。</p></div><div><h3>下载进度暂时不动</h3><p>看当前是安装组件、下载还是校验 → 展开安装详情 → 查看网络错误或等待提示。停止任务前先确认是否仍在写入文件。</p></div><div><h3>视频里说的话没转出来</h3><p>先确认视频有声音 → 核对“语音转文字”设置 → 用短片段仅转写测试。文字模型负责整理，不会替代语音识别。</p></div><div><h3>点管理以后，以为输入不见了</h3><p>先点窗口上的“← 返回”。页面内管理与左侧页面切换不同；如果已经完全退出软件，未保存的草稿不会保留。</p></div></div>
+</section>
+<footer class="guide-footer">示例只用于学习操作。实际结果以任务明细、原文内容和服务返回为准。<button type="button" data-help-action="back">← 返回刚才的页面</button></footer>
+</main></body></html>
