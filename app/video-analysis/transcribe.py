@@ -30,12 +30,15 @@ if model_name not in {'tiny', 'base', 'small', 'medium', 'large-v3', 'large-v3-t
 
 cache = os.path.join(ROOT, 'models')
 os.makedirs(cache, exist_ok=True)
-print(f'正在加载 {model_name}（首次使用会下载到本项目的 local-whisper/models）', file=sys.stderr, flush=True)
+def progress(**data):
+    print('GENTLYPICK_PROGRESS ' + json.dumps(data, ensure_ascii=True), file=sys.stderr, flush=True)
+progress(stage='loading', message='正在加载 ' + model_name)
 try:
     model = WhisperModel(model_name, device='cpu', compute_type='int8', download_root=cache, local_files_only=True)
 except Exception as exc:
     print('Whisper 模型未就绪或无法加载：' + str(exc) + '。请在本地模型页面安装所选版本。', file=sys.stderr, flush=True)
     sys.exit(2)
+progress(stage='recognizing', message='正在识别语言与语音')
 parts, info = model.transcribe(audio, beam_size=5, vad_filter=True, language=None)
 try:
     from opencc import OpenCC
@@ -55,9 +58,12 @@ def simplified(text):
     if not convert('zh-CN', 0x02000000, text, -1, output, size, None, None, 0):
         raise ctypes.WinError()
     return output.value
+progress(stage='transcribing', duration=info.duration, seconds=0)
 segments = []
 for s in parts:
     if s.text.strip():
         text = s.text.strip()
-        segments.append({'start': s.start, 'end': s.end, 'text': simplified(text) if info.language == 'zh' else text})
+        segment = {'start': s.start, 'end': s.end, 'text': simplified(text) if info.language == 'zh' else text}
+        segments.append(segment)
+        progress(stage='transcribing', duration=info.duration, seconds=s.end, segment=segment)
 print(json.dumps({'segments': segments, 'language': info.language}, ensure_ascii=True), flush=True)
