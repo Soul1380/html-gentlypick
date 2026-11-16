@@ -1,0 +1,17 @@
+/* Native bars are hidden only after the controller has initialized. */
+html.gp-overlay-scrollbars,html.gp-overlay-scrollbars *{scrollbar-width:none!important}
+html.gp-overlay-scrollbars::-webkit-scrollbar,html.gp-overlay-scrollbars *::-webkit-scrollbar{width:0!important;height:0!important;display:none!important}
+.gp-scrollbar{position:fixed;z-index:1000;opacity:0;pointer-events:none;transition:opacity .38s ease;user-select:none;touch-action:none;background:transparent;box-sizing:border-box}
+.gp-scrollbar.is-visible,.gp-scrollbar.is-dragging,.gp-scrollbar:focus-within{opacity:1;pointer-events:auto}
+.gp-scrollbar.vertical{width:11px;padding:0 3px}
+.gp-scrollbar.horizontal{height:11px;padding:3px 0}
+.gp-scroll-thumb{position:absolute;display:block;box-sizing:border-box;border-radius:99px;background:var(--scroll-thumb);cursor:grab;outline:none;min-width:0;min-height:0}
+.vertical .gp-scroll-thumb{left:3px;width:5px}
+.horizontal .gp-scroll-thumb{top:3px;height:5px}
+.gp-scrollbar:hover .gp-scroll-thumb,.gp-scrollbar.is-dragging .gp-scroll-thumb,.gp-scroll-thumb:focus-visible{background:var(--scroll-thumb-hover)}
+.gp-scrollbar.is-dragging .gp-scroll-thumb{cursor:grabbing}
+.gp-scroll-thumb:focus-visible{box-shadow:0 0 0 2px var(--surface),0 0 0 3px var(--brand)}
+@media(prefers-reduced-motion:reduce){.gp-scrollbar{transition:none}}
+@media print{.gp-scrollbar{display:none!important}}
+
+html.gp-overlay-scrollbars select{scrollbar-width:auto!important}html.gp-overlay-scrollbars select::-webkit-scrollbar{display:initial!important;width:auto!important;height:auto!important}

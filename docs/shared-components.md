@@ -45,3 +45,7 @@ window.showModal();
 文件夹浏览使用 Windows Common Item Dialog（带地址栏、可调整大小）；文件浏览使用升级版 OpenFileDialog。安装程序、导入旧资料和工作台使用同一实现。打开模型位置使用固定的资源管理器操作，不接收任意命令。
 
 `build-desktop.ps1 -ReuseDependenciesFrom <现有完整软件目录>` 可以复用相同版本的运行库，避免反复下载。构建仍检查 Node 版本及视频工具 SHA-256。
+
+## 视觉与滚动
+
+工作台、模型与视频分析共用 `ui-theme.css` 的字体色板，内嵌页面由 `embedded-ui.css` 统一卡片、表单和间距，不再复制颜色。`ui-scrollbars.js/css` 提供细圆角悬浮滚动条，滚动后显示，停止约 1.1 秒后淡出；保留拖动、横向滚动、键盘和减少动态效果设置，弹窗内滚动条归属对应弹窗。普通少量选项仍保留原生下拉。

@@ -1,0 +1,40 @@
+/* Layout remains page-specific; visual primitives share the workspace tokens. */
+html[data-ui-page] body{margin:0;background:var(--page)!important;color:var(--ink)!important;font:14px/1.55 'Segoe UI Variable','Microsoft YaHei UI',sans-serif}
+html[data-ui-page] main{max-width:1440px;margin:0 auto;padding:36px clamp(24px,5vw,80px)}
+html[data-ui-page][data-embedded=page] main{max-width:none;padding:0;margin:0}
+html[data-ui-page][data-embedded=dialog] main{max-width:none;padding:22px}
+html[data-ui-page] main>header{margin:0 0 32px;gap:16px}
+html[data-ui-page] h1{font-size:23px;font-weight:550;line-height:1.35;margin:0}
+html[data-ui-page] .card{border:1px solid var(--border)!important;border-radius:20px;background:var(--surface)!important;color:var(--ink)!important;padding:25px;margin:0 0 20px;box-shadow:none}
+html[data-ui-page] .card h2,html[data-ui-page] .card h3{font-weight:550;color:var(--ink)}
+html[data-ui-page] .card h2{font-size:19px;margin:0 0 16px}
+html[data-ui-page] small,html[data-ui-page] .muted,html[data-ui-page] .section-hint,html[data-ui-page] .environment-hint,html[data-ui-page] .model-location,html[data-ui-page] .inventory-size{color:var(--subtle)!important}
+html[data-ui-page] input:not([type=checkbox]),html[data-ui-page] textarea,html[data-ui-page] select{font:inherit;background:var(--field)!important;color:var(--ink)!important;border-color:var(--border)!important;border-radius:12px;padding:12px}
+html[data-ui-page] .ui-field>input:not([type=checkbox]){background:transparent!important;border:0!important;border-radius:0!important}
+html[data-ui-page] button,html[data-ui-page] a.link{font:inherit;border:1px solid var(--border);border-radius:12px;padding:10px 13px;background:var(--surface);color:var(--ink);transition:background .18s,box-shadow .18s}
+html[data-ui-page] button:hover,html[data-ui-page] a.link:hover{background:var(--hover);transform:none;box-shadow:0 4px 12px #00000008}
+html[data-ui-page] button:active{transform:none}
+html[data-ui-page] button.primary{background:#496e5b;color:#fff;border-color:transparent}
+html[data-ui-page] button.primary:hover{background:#365944}
+html[data-ui-page] button:disabled{opacity:.45;box-shadow:none;cursor:default}
+html[data-ui-page] a{color:var(--brand)}
+html[data-ui-page] .layout{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px;align-items:start}
+html[data-ui-page] .layout>.viewer,html[data-ui-page] .layout>.settings{min-width:0}
+html[data-ui-page] .settings details{padding-top:4px}
+html[data-ui-page] .settings details+details{border-top:1px solid var(--border);padding-top:18px;margin-top:22px}
+html[data-ui-page] video{background:#171a18;border-radius:12px}
+html[data-ui-page] pre{color:var(--ink)}
+html[data-ui-page] .inventory-head{background:var(--soft)}
+html[data-ui-page] .inventory-row{border-color:var(--border)}
+html[data-ui-page] .manager-dialog,html[data-ui-page] .model-dialog{background:var(--surface);color:var(--ink);border-color:var(--border)}
+html[data-ui-page] .model-summary,html[data-ui-page] .manager-toolbar{border-color:var(--border)}
+html[data-ui-page] .ui-field-action{border-radius:0;background:var(--soft)!important;color:var(--brand)!important}
+html[data-ui-page] .ui-field-action:hover{box-shadow:none}
+html[data-ui-page] .ui-option{border-radius:8px}
+html[data-ui-page] .ui-option.selected{background:var(--hover)}
+html[data-ui-page] .inventory-badge{font-size:12px}
+@media(max-width:850px){html[data-ui-page] .layout{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:700px){html[data-ui-page] main{padding:24px 16px}html[data-ui-page][data-embedded=page] main{padding:0}html[data-ui-page][data-embedded=dialog] main{padding:16px}html[data-ui-page] .card{padding:18px}html[data-ui-page] main>header{margin-bottom:24px}}
+@media print{html[data-ui-page] body{background:#fff!important;color:#000!important}html[data-ui-page] main{padding:0}html[data-ui-page] .card{border:0!important;box-shadow:none}}
+
+html[data-ui-page] progress{height:6px;border:0;border-radius:99px;background:var(--soft);accent-color:var(--brand);appearance:none;overflow:hidden}html[data-ui-page] progress::-webkit-progress-bar{background:var(--soft);border-radius:99px}html[data-ui-page] progress::-webkit-progress-value{background:var(--brand);border-radius:99px}
