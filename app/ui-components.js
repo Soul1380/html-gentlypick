@@ -2,6 +2,7 @@
 (()=>{'use strict';
 for(const href of ['/ui-theme.css','/ui-components.css','/ui-scrollbars.css',...(document.documentElement.dataset.uiPage?['/embedded-ui.css']:[])]){const link=document.createElement('link');link.rel='stylesheet';link.href=href;document.head.append(link)}
 if(window.parent!==window){try{document.documentElement.dataset.embedded=window.frameElement?.classList.contains('ui-model-frame')?'dialog':'page'}catch{document.documentElement.dataset.embedded='page'}}
+const selection=document.createElement('script');selection.src='/ui-selection.js';document.head.append(selection);
 const scrolling=document.createElement('script');scrolling.src='/ui-scrollbars.js';document.head.append(scrolling);
 const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n};
 const variants=new Map(),pending=new Map();let nativeBusy=false,standaloneManager=null;const folderIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 7V5a1 1 0 0 1 1-1h5l2 3h9a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7z"/></svg>';

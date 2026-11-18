@@ -1,7 +1,7 @@
 const crypto=require('node:crypto'),{allowed}=require('./search.cjs');
 const pending=new Map(),queue=[];let lastPoll=0;
 const active=()=>!!process.env.EXCERPT_DESKTOP_TOKEN&&Date.now()-lastPoll<120000;
-function request(command){if(!active())return Promise.reject(Error('内置浏览器未就绪，请回到桌面软件'));return new Promise((resolve,reject)=>{const id=crypto.randomUUID(),timer=setTimeout(()=>{pending.delete(id);reject(Error('内置浏览器读取超时，请先登录或完成验证后重试'));},90000);pending.set(id,{resolve,reject,timer});queue.push({...command,id});});}
+function request(command){require('./task-control.cjs').check();if(!active())return Promise.reject(Error('内置浏览器未就绪，请回到桌面软件'));return new Promise((resolve,reject)=>{const id=crypto.randomUUID(),timer=setTimeout(()=>{pending.delete(id);reject(Error('内置浏览器读取超时，请先登录或完成验证后重试'));},90000);const signal=require('./task-control.cjs').signal();const abort=()=>{pending.delete(id);clearTimeout(timer);reject(signal.reason)};signal?.addEventListener('abort',abort,{once:true});const cleanup=()=>signal?.removeEventListener('abort',abort);pending.set(id,{resolve:r=>{cleanup();resolve(r)},reject:e=>{cleanup();reject(e)},timer});queue.push({...command,id});});}
 function poll(){lastPoll=Date.now();let next;while(queue.length){next=queue.shift();if(pending.has(next.id))return next;}return null;}
 function complete(input){const entry=pending.get(input.id);if(!entry)return false;pending.delete(input.id);clearTimeout(entry.timer);input.error?entry.reject(Error(String(input.error).slice(0,1000))):entry.resolve(input);return true;}
 async function page(url){const r=await request({kind:'read',url,scrollRounds:0});return {url:r.url,text:r.html,status:200,type:'text/html'};}

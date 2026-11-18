@@ -3,7 +3,7 @@ $ErrorActionPreference='Stop'
 [Console]::OutputEncoding=[Text.UTF8Encoding]::new($false)
 $source=$PSScriptRoot
 try{
- $requiredFiles=@('version-tools.ps1','version.json','dependencies.json','app/server.cjs','app/device-profile.cjs','app/report-writing.cjs','app/report-layout.cjs','app/report-data.cjs','app/report-xlsx.cjs','app/report-narrative.cjs','app/ui-components.js','app/ui-components.css','app/ui-theme.css','app/embedded-ui.css','app/ui-scrollbars.js','app/ui-scrollbars.css','app/ui-workflows.js','app/tutorial.html','app/tutorial.css','app/tutorial.js','app/tutorial-assets/workspace.png','app/tutorial-assets/task.png','app/tutorial-assets/projects.png','app/tutorial-assets/models.png','app/tutorial-assets/video.png','desktop/Desktop.cs','desktop/SharedControls.cs','build-desktop.ps1','build-installer.ps1','publish-package.ps1','.github/workflows/windows-release.yml','AGENTS.md')
+ $requiredFiles=@('version-tools.ps1','version.json','dependencies.json','app/server.cjs','app/task-control.cjs','app/report-clear.cjs','app/workspace-actions.js','app/ui-selection.js','app/device-profile.cjs','app/report-writing.cjs','app/report-layout.cjs','app/report-data.cjs','app/report-xlsx.cjs','app/report-narrative.cjs','app/ui-components.js','app/ui-components.css','app/ui-theme.css','app/embedded-ui.css','app/ui-scrollbars.js','app/ui-scrollbars.css','app/ui-workflows.js','app/tutorial.html','app/tutorial.css','app/tutorial.js','app/tutorial-assets/workspace.png','app/tutorial-assets/task.png','app/tutorial-assets/projects.png','app/tutorial-assets/models.png','app/tutorial-assets/video.png','desktop/Desktop.cs','desktop/SharedControls.cs','build-desktop.ps1','build-installer.ps1','publish-package.ps1','.github/workflows/windows-release.yml','AGENTS.md')
  $missing=@($requiredFiles|Where-Object {-not(Test-Path -LiteralPath (Join-Path $source $_) -PathType Leaf)})
  if($missing.Count){throw ('当前不是完整上传目录，缺少：'+($missing -join '、')+'。请解压并保留整个 GitHub 上传文件夹，不要只复制发布脚本，也不要放到安装程序目录运行。')}
  . (Join-Path $source 'version-tools.ps1')
@@ -15,7 +15,8 @@ function Run-Git([string[]]$Arguments){
  & git @gitNetwork @Arguments
  if($LASTEXITCODE -ne 0){throw "Git 操作失败（$LASTEXITCODE）。没有继续执行后续发布步骤。"}
 }
-$stage=Join-Path ([IO.Path]::GetTempPath()) ('gentlypick-release-'+[Guid]::NewGuid().ToString('N'))
+$stage=Join-Path (Join-Path $source '.publish-work') ('gentlypick-release-'+[Guid]::NewGuid().ToString('N'))
+New-Item -ItemType Directory -Force -Path (Split-Path $stage -Parent) | Out-Null
 Write-Host "准备上传轻摘 v$version"
 Write-Host "源码位置：$source"
 

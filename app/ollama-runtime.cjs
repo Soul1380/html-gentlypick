@@ -1,7 +1,7 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),{spawn}=require('node:child_process');
 function createRuntime(options={}){
- const request=options.fetch||fetch,launch=options.launch||((exe,args,env)=>{const child=spawn(exe,args,{env,windowsHide:true,detached:true,stdio:'ignore'});child.on('error',()=>{});child.unref();}),exists=options.exists||fs.existsSync;
+ const request=options.fetch||fetch,launch=options.launch||((exe,args,env)=>{const child=spawn(exe,args,{env,windowsHide:true,detached:false,stdio:'ignore'});child.on('error',()=>{});child.unref();}),exists=options.exists||fs.existsSync;
  let starting=null,lastError='',lastLaunch=0;
  function executable(){const local=process.env.LOCALAPPDATA||path.join(os.homedir(),'AppData','Local');return [process.env.GENTLYPICK_OLLAMA,path.join(local,'Programs','Ollama','ollama.exe'),path.join(process.env.ProgramFiles||'C:/Program Files','Ollama','ollama.exe'),'D:/DeepSeekLocal/ollama/ollama.exe',...String(process.env.PATH||'').split(path.delimiter).filter(Boolean).map(p=>path.join(p,'ollama.exe'))].find(p=>p&&exists(p))||'';}
  function modelDirectory(){if(process.env.OLLAMA_MODELS)return process.env.OLLAMA_MODELS;const exe=executable(),adjacent=exe&&path.resolve(path.dirname(exe),'..','models');if(adjacent&&exists(adjacent))return adjacent;return path.join(os.homedir(),'.ollama','models');}
